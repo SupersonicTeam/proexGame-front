@@ -4,6 +4,9 @@ import { useGameStore } from '../../game/store/gameStore'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
+import { TextField } from '../../ui/TextField'
+import { Tabs } from '../../ui/Tabs'
+import { OptionGroup } from '../../ui/OptionGroup'
 
 const DIFFICULTIES: { value: Difficulty; label: string; hint: string }[] = [
   { value: 'easy', label: 'Fácil', hint: 'Mais avanço, menos perguntas' },
@@ -12,6 +15,11 @@ const DIFFICULTIES: { value: Difficulty; label: string; hint: string }[] = [
 ]
 
 type Mode = 'create' | 'join'
+
+const MODE_TABS: { value: Mode; label: string }[] = [
+  { value: 'create', label: 'Criar sessão' },
+  { value: 'join', label: 'Entrar com código' },
+]
 
 /** Tela inicial: criar uma nova sessão ou entrar por código. */
 export function HomeScreen() {
@@ -30,34 +38,27 @@ export function HomeScreen() {
 
   return (
     <Screen center>
-      <div className="w-full max-w-md">
-        <header className="mb-6 text-center text-white drop-shadow">
-          <h1 className="text-4xl font-black tracking-tight">
+      <div className="w-full max-w-lg">
+        <header className="mb-8 text-center text-white drop-shadow">
+          <h1 className="text-5xl font-black tracking-tight sm:text-6xl">
             Trilha do Saber
           </h1>
-          <p className="mt-1 text-white/90">
+          <p className="mt-2 text-lg text-white/90">
             Jogo de tabuleiro educativo — responda e avance!
           </p>
         </header>
 
-        <Card>
-          <div className="mb-5 flex rounded-2xl bg-brand/10 p-1">
-            <TabButton
-              active={mode === 'create'}
-              onClick={() => setMode('create')}
-            >
-              Criar sessão
-            </TabButton>
-            <TabButton active={mode === 'join'} onClick={() => setMode('join')}>
-              Entrar com código
-            </TabButton>
-          </div>
+        <Card size="lg">
+          <Tabs
+            className="mb-6"
+            value={mode}
+            options={MODE_TABS}
+            onChange={setMode}
+          />
 
-          <label className="mb-1 block text-sm font-semibold text-slate-700">
-            Seu nome
-          </label>
-          <input
-            className="mb-4 w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-800 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
+          <TextField
+            label="Seu nome"
+            containerClassName="mb-5"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Como vão te chamar?"
@@ -66,47 +67,31 @@ export function HomeScreen() {
 
           {mode === 'create' ? (
             <>
-              <span className="mb-1 block text-sm font-semibold text-slate-700">
-                Dificuldade
-              </span>
-              <div className="mb-5 grid grid-cols-3 gap-2">
-                {DIFFICULTIES.map((d) => (
-                  <button
-                    key={d.value}
-                    type="button"
-                    onClick={() => setDifficulty(d.value)}
-                    className={
-                      'rounded-xl border-2 px-2 py-3 text-center transition ' +
-                      (difficulty === d.value
-                        ? 'border-brand bg-brand/10 text-brand'
-                        : 'border-slate-200 text-slate-600 hover:border-slate-300')
-                    }
-                  >
-                    <span className="block font-bold">{d.label}</span>
-                    <span className="mt-1 block text-[11px] leading-tight opacity-70">
-                      {d.hint}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <OptionGroup
+                className="mb-6"
+                label="Dificuldade"
+                value={difficulty}
+                options={DIFFICULTIES}
+                onChange={setDifficulty}
+              />
               <Button
+                size="lg"
                 className="w-full"
                 disabled={!canCreate}
                 onClick={() => createSession({ name: trimmed, difficulty })}
               >
                 Criar sessão
               </Button>
-              <p className="mt-3 text-center text-xs text-slate-500">
+              <p className="mt-4 text-center text-sm text-slate-500">
                 Você jogará contra 2 oponentes simulados (modo demonstração).
               </p>
             </>
           ) : (
             <>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Código da sessão
-              </label>
-              <input
-                className="mb-5 w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-lg tracking-widest text-slate-800 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
+              <TextField
+                label="Código da sessão"
+                containerClassName="mb-6"
+                className="font-mono text-xl tracking-[0.4em]"
                 value={code}
                 onChange={(e) =>
                   setCode(e.target.value.replace(/\D/g, '').slice(0, 5))
@@ -116,6 +101,7 @@ export function HomeScreen() {
               />
               <Button
                 variant="secondary"
+                size="lg"
                 className="w-full"
                 disabled={!canJoin}
                 onClick={() =>
@@ -124,7 +110,7 @@ export function HomeScreen() {
               >
                 Entrar
               </Button>
-              <p className="mt-3 text-center text-xs text-slate-500">
+              <p className="mt-4 text-center text-sm text-slate-500">
                 Entrar em sessão de outro jogador exige o servidor online (em
                 breve).
               </p>
@@ -132,35 +118,12 @@ export function HomeScreen() {
           )}
 
           {error && (
-            <p className="mt-4 rounded-xl bg-coral/15 px-4 py-2 text-center text-sm font-semibold text-coral">
+            <p className="mt-5 rounded-xl bg-coral/15 px-4 py-3 text-center text-sm font-semibold text-coral">
               {error}
             </p>
           )}
         </Card>
       </div>
     </Screen>
-  )
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        'flex-1 rounded-xl px-3 py-2 text-sm font-bold transition ' +
-        (active ? 'bg-white text-brand shadow' : 'text-brand/70')
-      }
-    >
-      {children}
-    </button>
   )
 }
