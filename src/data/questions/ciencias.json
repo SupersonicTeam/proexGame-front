@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cie-0001",
+    "subject": "ciencias",
+    "statement": "Qual é o planeta mais próximo do Sol?",
+    "correct": "Mercúrio",
+    "proximal": "Vênus",
+    "wrong": ["Terra", "Marte"]
+  },
+  {
+    "id": "cie-0002",
+    "subject": "ciencias",
+    "statement": "Qual gás os seres humanos eliminam ao respirar?",
+    "correct": "Gás carbônico",
+    "proximal": "Oxigênio",
+    "wrong": ["Hidrogênio", "Hélio"]
+  },
+  {
+    "id": "cie-0003",
+    "subject": "ciencias",
+    "statement": "Qual é a unidade básica de todos os seres vivos?",
+    "correct": "Célula",
+    "proximal": "Átomo",
+    "wrong": ["Molécula", "Tecido"]
+  },
+  {
+    "id": "cie-0004",
+    "subject": "ciencias",
+    "statement": "Em qual estado físico a água se encontra a 0 °C ao congelar?",
+    "correct": "Sólido",
+    "proximal": "Líquido",
+    "wrong": ["Gasoso", "Plasma"]
+  },
+  {
+    "id": "cie-0005",
+    "subject": "ciencias",
+    "statement": "Qual fonte de energia é considerada renovável?",
+    "correct": "Energia solar",
+    "proximal": "Gás natural",
+    "wrong": ["Petróleo", "Carvão mineral"]
+  },
+  {
+    "id": "cie-0006",
+    "subject": "ciencias",
+    "statement": "Qual é o satélite natural da Terra?",
+    "correct": "Lua",
+    "proximal": "Fobos",
+    "wrong": ["Sol", "Marte"]
+  }
+]

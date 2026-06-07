@@ -1,0 +1,50 @@
+[
+  {
+    "id": "mat-0001",
+    "subject": "matematica",
+    "statement": "Quanto é 15% de 200?",
+    "correct": "30",
+    "proximal": "35",
+    "wrong": ["20", "300"]
+  },
+  {
+    "id": "mat-0002",
+    "subject": "matematica",
+    "statement": "Qual é o valor de x na equação 2x + 6 = 20?",
+    "correct": "7",
+    "proximal": "13",
+    "wrong": ["3", "26"]
+  },
+  {
+    "id": "mat-0003",
+    "subject": "matematica",
+    "statement": "Qual é a área de um quadrado de lado 5 cm?",
+    "correct": "25 cm²",
+    "proximal": "20 cm²",
+    "wrong": ["10 cm²", "55 cm²"]
+  },
+  {
+    "id": "mat-0004",
+    "subject": "matematica",
+    "statement": "Quanto é a raiz quadrada de 144?",
+    "correct": "12",
+    "proximal": "14",
+    "wrong": ["72", "24"]
+  },
+  {
+    "id": "mat-0005",
+    "subject": "matematica",
+    "statement": "Em um triângulo, a soma dos ângulos internos é igual a quanto?",
+    "correct": "180°",
+    "proximal": "360°",
+    "wrong": ["90°", "270°"]
+  },
+  {
+    "id": "mat-0006",
+    "subject": "matematica",
+    "statement": "Qual é o resultado de 3/4 + 1/4?",
+    "correct": "1",
+    "proximal": "4/8",
+    "wrong": ["2", "3/8"]
+  }
+]

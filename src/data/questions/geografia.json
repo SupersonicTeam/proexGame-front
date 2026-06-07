@@ -1,0 +1,50 @@
+[
+  {
+    "id": "geo-0001",
+    "subject": "geografia",
+    "statement": "Qual é a capital da Austrália?",
+    "correct": "Camberra",
+    "proximal": "Sydney",
+    "wrong": ["Lisboa", "Tóquio"]
+  },
+  {
+    "id": "geo-0002",
+    "subject": "geografia",
+    "statement": "Qual é o maior rio do mundo em volume de água?",
+    "correct": "Rio Amazonas",
+    "proximal": "Rio Nilo",
+    "wrong": ["Rio Tietê", "Rio Mississippi"]
+  },
+  {
+    "id": "geo-0003",
+    "subject": "geografia",
+    "statement": "Qual é o continente mais populoso do planeta?",
+    "correct": "Ásia",
+    "proximal": "África",
+    "wrong": ["Europa", "Oceania"]
+  },
+  {
+    "id": "geo-0004",
+    "subject": "geografia",
+    "statement": "Que linha imaginária divide a Terra em hemisférios Norte e Sul?",
+    "correct": "Linha do Equador",
+    "proximal": "Trópico de Capricórnio",
+    "wrong": ["Meridiano de Greenwich", "Linha Internacional de Data"]
+  },
+  {
+    "id": "geo-0005",
+    "subject": "geografia",
+    "statement": "Qual é o maior bioma do território brasileiro?",
+    "correct": "Amazônia",
+    "proximal": "Cerrado",
+    "wrong": ["Pantanal", "Caatinga"]
+  },
+  {
+    "id": "geo-0006",
+    "subject": "geografia",
+    "statement": "Qual é o país mais extenso em área territorial do mundo?",
+    "correct": "Rússia",
+    "proximal": "Canadá",
+    "wrong": ["Brasil", "China"]
+  }
+]

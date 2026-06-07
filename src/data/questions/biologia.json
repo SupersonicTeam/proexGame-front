@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bio-0001",
+    "subject": "biologia",
+    "statement": "Qual organela é responsável pela produção de energia na célula?",
+    "correct": "Mitocôndria",
+    "proximal": "Cloroplasto",
+    "wrong": ["Núcleo", "Ribossomo"]
+  },
+  {
+    "id": "bio-0002",
+    "subject": "biologia",
+    "statement": "Qual processo as plantas usam para produzir seu próprio alimento?",
+    "correct": "Fotossíntese",
+    "proximal": "Respiração celular",
+    "wrong": ["Digestão", "Fermentação"]
+  },
+  {
+    "id": "bio-0003",
+    "subject": "biologia",
+    "statement": "Qual molécula carrega a informação genética dos seres vivos?",
+    "correct": "DNA",
+    "proximal": "RNA",
+    "wrong": ["ATP", "Proteína"]
+  },
+  {
+    "id": "bio-0004",
+    "subject": "biologia",
+    "statement": "A que grupo de animais pertencem os anfíbios como o sapo?",
+    "correct": "Vertebrados",
+    "proximal": "Invertebrados",
+    "wrong": ["Insetos", "Moluscos"]
+  },
+  {
+    "id": "bio-0005",
+    "subject": "biologia",
+    "statement": "Qual é o nome do sistema que transporta o sangue pelo corpo?",
+    "correct": "Sistema circulatório",
+    "proximal": "Sistema respiratório",
+    "wrong": ["Sistema digestório", "Sistema nervoso"]
+  },
+  {
+    "id": "bio-0006",
+    "subject": "biologia",
+    "statement": "Quem propôs a Teoria da Evolução por seleção natural?",
+    "correct": "Charles Darwin",
+    "proximal": "Jean-Baptiste Lamarck",
+    "wrong": ["Gregor Mendel", "Louis Pasteur"]
+  }
+]

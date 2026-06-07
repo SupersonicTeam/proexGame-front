@@ -1,0 +1,50 @@
+[
+  {
+    "id": "his-0001",
+    "subject": "historia",
+    "statement": "Em que ano o Brasil proclamou sua Independência de Portugal?",
+    "correct": "1822",
+    "proximal": "1824",
+    "wrong": ["1500", "1889"]
+  },
+  {
+    "id": "his-0002",
+    "subject": "historia",
+    "statement": "Quem foi o primeiro presidente do Brasil?",
+    "correct": "Deodoro da Fonseca",
+    "proximal": "Floriano Peixoto",
+    "wrong": ["Dom Pedro II", "Getúlio Vargas"]
+  },
+  {
+    "id": "his-0003",
+    "subject": "historia",
+    "statement": "Qual evento marcou o fim da Segunda Guerra Mundial em 1945?",
+    "correct": "Rendição do Japão",
+    "proximal": "Invasão da Normandia",
+    "wrong": ["Queda do Muro de Berlim", "Revolução Russa"]
+  },
+  {
+    "id": "his-0004",
+    "subject": "historia",
+    "statement": "Qual civilização construiu as pirâmides de Gizé?",
+    "correct": "Egípcios",
+    "proximal": "Mesopotâmios",
+    "wrong": ["Maias", "Romanos"]
+  },
+  {
+    "id": "his-0005",
+    "subject": "historia",
+    "statement": "Em que ano foi assinada a Lei Áurea, que aboliu a escravidão no Brasil?",
+    "correct": "1888",
+    "proximal": "1889",
+    "wrong": ["1822", "1850"]
+  },
+  {
+    "id": "his-0006",
+    "subject": "historia",
+    "statement": "Qual período histórico ficou conhecido como 'Idade das Trevas'?",
+    "correct": "Idade Média",
+    "proximal": "Idade Antiga",
+    "wrong": ["Idade Moderna", "Pré-História"]
+  }
+]
