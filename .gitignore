@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Helper local de teste (monta a pasta questions no backend) — não versionar.
+.local-back-override.yml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

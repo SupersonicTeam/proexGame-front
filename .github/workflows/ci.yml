@@ -1,0 +1,41 @@
+# CI — roda em cada PR e no push para main.
+# Garante que só código verde (lint + testes + build) chega na main antes de o
+# workflow de Release publicar e fazer o deploy.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancela execuções antigas do mesmo ref para economizar minutos.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint, testes e build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes
+        run: npm run test:run
+
+      # `build` roda `tsc -b && vite build` → cobre a checagem de tipos também.
+      - name: Build
+        run: npm run build

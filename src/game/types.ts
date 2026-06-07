@@ -161,8 +161,11 @@ export interface AnswerResultEvent {
   movement: number
   fromSquare: number
   toSquare: number
-  /** Índice da alternativa correta, revelado só após a submissão. */
-  correctIndex: number
+  /**
+   * Índice da alternativa correta. OPCIONAL: o backend real NÃO o envia
+   * (RF-16 — a correta nunca trafega, nem após responder). Presente só no mock.
+   */
+  correctIndex?: number
 }
 export interface GameOverEvent {
   winner: RankingEntry

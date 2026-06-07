@@ -41,11 +41,12 @@ export function QuestionModal({
     if (!answered) {
       return 'border-slate-200 bg-white hover:border-brand hover:bg-brand/5'
     }
-    if (i === lastAnswer!.correctIndex) {
-      return 'border-emerald-500 bg-emerald-50 text-emerald-800'
-    }
+    // RF-16: o servidor não revela a alternativa correta. Destacamos apenas a
+    // opção ESCOLHIDA — verde se acertou, vermelho se errou.
     if (i === selected) {
-      return 'border-rose-500 bg-rose-50 text-rose-800'
+      return lastAnswer!.correct
+        ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+        : 'border-rose-500 bg-rose-50 text-rose-800'
     }
     return 'border-slate-200 bg-white opacity-60'
   }
