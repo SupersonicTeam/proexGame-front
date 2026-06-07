@@ -5,6 +5,7 @@
  * (desktop) e ao tocar (mobile), exibindo um popover com a informação da casa.
  */
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { Subject, TileType } from '../../../game/types'
 import {
@@ -116,6 +117,36 @@ export function Tile({
           opacity={0.28}
         />
 
+        {/* Grades da cela (presídio): barras de aço com leve 3D, atrás do nº. */}
+        {type === 'prison' &&
+          [-0.55, -0.27, 0.27, 0.55].map((f) => {
+            const x = radius * f
+            const inner = radius - radius * 0.16
+            const h = Math.sqrt(Math.max(0, inner * inner - x * x))
+            return (
+              <g key={f}>
+                <line
+                  x1={x}
+                  y1={-h}
+                  x2={x}
+                  y2={h}
+                  stroke="#1e293b"
+                  strokeWidth={radius * 0.11}
+                  strokeLinecap="round"
+                />
+                <line
+                  x1={x - radius * 0.015}
+                  y1={-h}
+                  x2={x - radius * 0.015}
+                  y2={h}
+                  stroke="#cbd5e1"
+                  strokeWidth={radius * 0.045}
+                  strokeLinecap="round"
+                />
+              </g>
+            )
+          })}
+
         {/* Número da casa. */}
         <text
           x={0}
@@ -149,29 +180,41 @@ export function Tile({
           </text>
         )}
 
-        {/* Glifo de presídio: barras. */}
+        {/* Cadeado dourado (presídio), na base da casa. */}
         {type === 'prison' && (
-          <g stroke="#fbbf24" strokeWidth={2.5} strokeLinecap="round">
-            <line
-              x1={-radius * 0.4}
-              y1={radius * 0.38}
-              x2={-radius * 0.4}
-              y2={radius * 0.74}
+          <g transform={`translate(0 ${radius * 0.52})`}>
+            <path
+              d={`M ${-radius * 0.11} 0 a ${radius * 0.11} ${radius * 0.11} 0 0 1 ${radius * 0.22} 0`}
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth={radius * 0.05}
             />
-            <line x1={0} y1={radius * 0.38} x2={0} y2={radius * 0.74} />
-            <line
-              x1={radius * 0.4}
-              y1={radius * 0.38}
-              x2={radius * 0.4}
-              y2={radius * 0.74}
+            <rect
+              x={-radius * 0.15}
+              y={0}
+              width={radius * 0.3}
+              height={radius * 0.24}
+              rx={radius * 0.05}
+              fill="#fbbf24"
+              stroke="#b45309"
+              strokeWidth={radius * 0.02}
+            />
+            <circle
+              cx={0}
+              cy={radius * 0.11}
+              r={radius * 0.04}
+              fill="#7c2d12"
             />
           </g>
         )}
       </motion.g>
 
-      {/* Faixa de INÍCIO / CHEGADA. */}
+      {/* Bandeira quadriculada de linha de chegada. */}
+      {isFinish && <FinishFlag radius={radius} />}
+
+      {/* Faixa INÍCIO (acima) / CHEGADA (abaixo da casa). */}
       {ribbon && (
-        <g transform={`translate(0 ${-radius - 22})`}>
+        <g transform={`translate(0 ${isFinish ? radius + 22 : -radius - 22})`}>
           <rect
             x={-radius - 6}
             y={-13}
@@ -223,6 +266,67 @@ export function Tile({
           </text>
         </g>
       )}
+    </g>
+  )
+}
+
+/**
+ * Bandeirinha quadriculada de linha de chegada, plantada no canto superior
+ * direito da casa final (compacta, para não invadir a casa de cima).
+ * Coordenadas locais: origem = centro da casa.
+ */
+function FinishFlag({ radius }: { radius: number }) {
+  const cell = 5
+  const cols = 3
+  const rows = 2
+  const flagW = cols * cell
+  const flagH = rows * cell
+  const poleX = radius * 0.34 // canto superior direito
+  const baseY = -radius * 0.42 // base do mastro (dentro da casa)
+  const topY = baseY - 22 // topo do mastro
+
+  const squares: ReactNode[] = []
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if ((r + c) % 2 === 0) {
+        squares.push(
+          <rect
+            key={`${r}-${c}`}
+            x={poleX + c * cell}
+            y={topY + r * cell}
+            width={cell}
+            height={cell}
+            fill="#1f2937"
+          />,
+        )
+      }
+    }
+  }
+
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      {/* Mastro. */}
+      <line
+        x1={poleX}
+        y1={baseY}
+        x2={poleX}
+        y2={topY}
+        stroke="#78350f"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+      />
+      <circle cx={poleX} cy={topY} r={2.2} fill="#fbbf24" />
+      {/* Pano quadriculado (fundo branco + xadrez). */}
+      <rect
+        x={poleX}
+        y={topY}
+        width={flagW}
+        height={flagH}
+        fill="#ffffff"
+        stroke="#1f2937"
+        strokeWidth={0.8}
+      />
+      {squares}
     </g>
   )
 }
