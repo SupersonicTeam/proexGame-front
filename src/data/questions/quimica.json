@@ -1,0 +1,50 @@
+[
+  {
+    "id": "qui-0001",
+    "subject": "quimica",
+    "statement": "Qual é o símbolo químico do elemento ouro?",
+    "correct": "Au",
+    "proximal": "Ag",
+    "wrong": ["O", "Go"]
+  },
+  {
+    "id": "qui-0002",
+    "subject": "quimica",
+    "statement": "Qual é a fórmula química da água?",
+    "correct": "H₂O",
+    "proximal": "H₂O₂",
+    "wrong": ["CO₂", "O₂"]
+  },
+  {
+    "id": "qui-0003",
+    "subject": "quimica",
+    "statement": "Quantos prótons tem o átomo de hidrogênio?",
+    "correct": "1",
+    "proximal": "2",
+    "wrong": ["8", "0"]
+  },
+  {
+    "id": "qui-0004",
+    "subject": "quimica",
+    "statement": "Uma substância com pH 2 é classificada como:",
+    "correct": "Ácida",
+    "proximal": "Neutra",
+    "wrong": ["Básica", "Alcalina"]
+  },
+  {
+    "id": "qui-0005",
+    "subject": "quimica",
+    "statement": "Qual gás é essencial para a combustão?",
+    "correct": "Oxigênio",
+    "proximal": "Gás carbônico",
+    "wrong": ["Nitrogênio", "Hélio"]
+  },
+  {
+    "id": "qui-0006",
+    "subject": "quimica",
+    "statement": "Como se chama a menor partícula de um elemento químico?",
+    "correct": "Átomo",
+    "proximal": "Molécula",
+    "wrong": ["Célula", "Íon"]
+  }
+]

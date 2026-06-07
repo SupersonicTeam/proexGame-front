@@ -1,0 +1,50 @@
+[
+  {
+    "id": "art-0001",
+    "subject": "artes",
+    "statement": "Quem pintou a obra 'Mona Lisa'?",
+    "correct": "Leonardo da Vinci",
+    "proximal": "Michelangelo",
+    "wrong": ["Pablo Picasso", "Vincent van Gogh"]
+  },
+  {
+    "id": "art-0002",
+    "subject": "artes",
+    "statement": "Quais são as três cores primárias?",
+    "correct": "Vermelho, azul e amarelo",
+    "proximal": "Vermelho, verde e azul",
+    "wrong": ["Preto, branco e cinza", "Laranja, verde e roxo"]
+  },
+  {
+    "id": "art-0003",
+    "subject": "artes",
+    "statement": "A pintora brasileira Tarsila do Amaral é ligada a qual movimento?",
+    "correct": "Modernismo",
+    "proximal": "Barroco",
+    "wrong": ["Renascimento", "Impressionismo"]
+  },
+  {
+    "id": "art-0004",
+    "subject": "artes",
+    "statement": "Como se chama a mistura de duas cores primárias?",
+    "correct": "Cor secundária",
+    "proximal": "Cor terciária",
+    "wrong": ["Cor primária", "Cor neutra"]
+  },
+  {
+    "id": "art-0005",
+    "subject": "artes",
+    "statement": "Qual artista é famoso pela obra 'A Noite Estrelada'?",
+    "correct": "Vincent van Gogh",
+    "proximal": "Claude Monet",
+    "wrong": ["Leonardo da Vinci", "Salvador Dalí"]
+  },
+  {
+    "id": "art-0006",
+    "subject": "artes",
+    "statement": "Qual técnica usa pequenos pedaços de papel ou tecido colados?",
+    "correct": "Colagem",
+    "proximal": "Mosaico",
+    "wrong": ["Escultura", "Gravura"]
+  }
+]

@@ -1,9 +1,4 @@
-import type {
-  BoardDescriptor,
-  Difficulty,
-  Subject,
-  TileType,
-} from '../types'
+import type { BoardDescriptor, Difficulty, Subject, TileType } from '../types'
 
 /** Limites do tamanho do tabuleiro. */
 const MIN_SIZE = 20
@@ -74,7 +69,9 @@ export function generateBoard(
   }
 
   // 3. Casas-pergunta: densidade sobre as não-terminais restantes.
-  const questionCount = Math.round(candidates.length * QUESTION_DENSITY[difficulty])
+  const questionCount = Math.round(
+    candidates.length * QUESTION_DENSITY[difficulty],
+  )
   const questionSquares: number[] = []
   for (let i = 0; i < questionCount; i++) {
     questionSquares.push(takeRandom(candidates, rng))

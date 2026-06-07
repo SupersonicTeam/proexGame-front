@@ -1,4 +1,5 @@
 import type {
+  AnswerErrorType,
   CreateSessionInput,
   GameEventHandler,
   GameEventName,
@@ -7,23 +8,48 @@ import type {
   RankingEntry,
   ReconnectInput,
   SessionState,
+  Subject,
   SubmitAnswerInput,
+  TileType,
 } from '../types'
 import type { GameClient } from './GameClient'
 import { TypedEmitter } from './emitter'
 import {
+  advanceForCorrect,
+  applyAdvance,
   applyDiceMove,
+  applyRetreat,
+  buildOptions,
   generateBoard,
   generateSessionCode,
+  retreatForError,
   rollD6,
   rollForOrder,
+  selectQuestion,
 } from '../engine'
+import { allQuestions } from '../../data/questions'
 import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   createPlayer,
   createSimulatedPlayers,
 } from '../../data/mockSessions'
+
+/** Probabilidade de um bot acertar a pergunta. */
+const BOT_CORRECT_PROB = 0.6
+/** Atraso após uma resposta (mostra o feedback antes de prosseguir). */
+const ANSWER_RESOLVE_DELAY_MS = 1500
+/** Atraso ao pular o turno de quem está preso (mostra o aviso). */
+const SKIP_DELAY_MS = 1500
+
+/** Pergunta pendente aguardando resposta. */
+interface PendingQuestion {
+  playerId: string
+  questionId: string
+  subject: Subject
+  correctIndex: number
+  proximalIndex: number
+}
 
 /** Fases internas do loop simulado. */
 type Phase = 'lobby' | 'order' | 'playing' | 'finished'
@@ -65,6 +91,9 @@ export class MockGameClient implements GameClient {
   private botIds = new Set<string>()
   private phase: Phase = 'lobby'
   private timers = new Set<ReturnType<typeof setTimeout>>()
+  /** Perguntas já usadas na sessão (RF-09: sem repetição). */
+  private usedQuestionIds = new Set<string>()
+  private pendingQuestion: PendingQuestion | null = null
 
   constructor(options: MockGameClientOptions = {}) {
     this.rng = options.rng ?? Math.random
@@ -115,6 +144,8 @@ export class MockGameClient implements GameClient {
     this.myPlayerId = players[0].id
     this.botIds = botIds
     this.phase = 'lobby'
+    this.usedQuestionIds = new Set()
+    this.pendingQuestion = null
 
     this.emitter.emit('sessionCreated', {
       code,
@@ -188,10 +219,12 @@ export class MockGameClient implements GameClient {
     this.doRoll(current.id)
   }
 
-  submitAnswer(_input: SubmitAnswerInput): void {
-    // Sprint 1: sem perguntas no loop. No-op intencional (RF-16: nada de
-    // dado de resposta trafega aqui).
-    void _input
+  submitAnswer(input: SubmitAnswerInput): void {
+    const pq = this.pendingQuestion
+    // Só o jogador local submete pelo client; valida a pergunta pendente.
+    if (!pq || pq.questionId !== input.questionId) return
+    if (pq.playerId !== this.myPlayerId) return
+    this.resolveAnswer(input.optionIndex)
   }
 
   leaveSession(): void {
@@ -242,6 +275,8 @@ export class MockGameClient implements GameClient {
     this.session = null
     this.myPlayerId = null
     this.botIds.clear()
+    this.pendingQuestion = null
+    this.usedQuestionIds.clear()
   }
 
   /* ------------------------------------------------------------------ */
@@ -299,7 +334,149 @@ export class MockGameClient implements GameClient {
       this.finish(player)
       return
     }
+
+    const type = this.tileType(toSquare)
+    if (type === 'prison') {
+      // Presídio dispara SÓ por dado (RF-19): perde a próxima jogada (RF-20).
+      player.skipTurns += 1
+      this.touch()
+      this.advanceTurn()
+      return
+    }
+    if (type === 'question') {
+      // Pergunta dispara ao aterrissar via dado (RF-08).
+      this.triggerQuestion(player)
+      return
+    }
     this.advanceTurn()
+  }
+
+  /** Tipo da casa (normaliza ausências como 'normal'). */
+  private tileType(square: number): TileType {
+    const b = this.session!.board
+    return (
+      b.tileTypeBySquare[square] ??
+      (b.questionSquares.includes(square) ? 'question' : 'normal')
+    )
+  }
+
+  /**
+   * Dispara uma pergunta para `player`. Para o jogador local, emite
+   * `questionPrompt` (sem a resposta correta — RF-16) e aguarda `submitAnswer`.
+   * Para bots, agenda a resposta automática.
+   */
+  private triggerQuestion(player: Player): void {
+    if (!this.session) return
+    const subject = this.session.board.subjectBySquare[player.square]
+    if (!subject) {
+      this.advanceTurn()
+      return
+    }
+    const q = selectQuestion(
+      subject,
+      allQuestions,
+      this.usedQuestionIds,
+      this.rng,
+    )
+    if (!q) {
+      // Banco da matéria esgotado na sessão: trata a casa como normal.
+      this.advanceTurn()
+      return
+    }
+    this.usedQuestionIds.add(q.id)
+    const { options, correctIndex, proximalIndex } = buildOptions(q, this.rng)
+    this.pendingQuestion = {
+      playerId: player.id,
+      questionId: q.id,
+      subject,
+      correctIndex,
+      proximalIndex,
+    }
+
+    if (player.id === this.myPlayerId) {
+      this.emitter.emit('questionPrompt', {
+        questionId: q.id,
+        subject,
+        statement: q.statement,
+        options,
+      })
+    } else {
+      this.scheduleAfter(this.botDelayMs, () => this.botAnswer())
+    }
+  }
+
+  /** Bot decide a resposta (probabilístico) e resolve. */
+  private botAnswer(): void {
+    const pq = this.pendingQuestion
+    if (!pq) return
+    let optionIndex: number
+    if (this.rng() < BOT_CORRECT_PROB) {
+      optionIndex = pq.correctIndex
+    } else {
+      const wrong = [0, 1, 2, 3].filter((i) => i !== pq.correctIndex)
+      optionIndex = wrong[Math.floor(this.rng() * wrong.length)]
+    }
+    this.resolveAnswer(optionIndex)
+  }
+
+  /**
+   * Resolve a resposta: calcula movimento (§4 base), emite `answerResult`
+   * (revelando a correta só agora) e, após o feedback, encadeia (acerto em
+   * casa-pergunta — RF-11) ou passa a vez. Recuo nunca dispara pergunta (RF-08).
+   */
+  private resolveAnswer(optionIndex: number): void {
+    if (!this.session) return
+    const pq = this.pendingQuestion
+    if (!pq) return
+    this.pendingQuestion = null
+    const player = this.session.players.find((p) => p.id === pq.playerId)
+    if (!player) return
+
+    const correct = optionIndex === pq.correctIndex
+    const fromSquare = player.square
+    let toSquare: number
+    let won = false
+    let errorType: AnswerErrorType | null = null
+
+    if (correct) {
+      const amount = advanceForCorrect(this.session.difficulty)
+      const r = applyAdvance(fromSquare, amount, this.session.board.size)
+      toSquare = r.toSquare
+      won = r.won
+    } else {
+      errorType = optionIndex === pq.proximalIndex ? 'proximal' : 'wrong'
+      const amount = retreatForError(errorType, this.session.difficulty)
+      toSquare = applyRetreat(fromSquare, amount).toSquare
+    }
+    player.square = toSquare
+    this.touch()
+
+    this.emitter.emit('answerResult', {
+      playerId: player.id,
+      correct,
+      errorType,
+      movement: toSquare - fromSquare,
+      fromSquare,
+      toSquare,
+      correctIndex: pq.correctIndex,
+    })
+
+    if (won) {
+      this.scheduleAfter(ANSWER_RESOLVE_DELAY_MS, () => {
+        const p = this.session?.players.find((x) => x.id === player.id)
+        if (p) this.finish(p)
+      })
+      return
+    }
+
+    this.scheduleAfter(ANSWER_RESOLVE_DELAY_MS, () => {
+      if (!this.session) return
+      if (correct && this.tileType(player.square) === 'question') {
+        this.triggerQuestion(player)
+      } else {
+        this.advanceTurn()
+      }
+    })
   }
 
   /** Avança para o próximo turno e anuncia (automatiza bot se for o caso). */
@@ -311,10 +488,28 @@ export class MockGameClient implements GameClient {
     this.announceTurn()
   }
 
-  /** Emite `turnChanged` e dispara a jogada automática do bot, se for bot. */
+  /** Emite `turnChanged`, trata presídio (perde a vez) e automatiza bots. */
   private announceTurn(): void {
     const player = this.currentPlayer()
     if (!player || !this.session) return
+
+    // Preso: perde a vez (RF-20). Decrementa, avisa e passa sem rolar.
+    if (player.skipTurns > 0) {
+      player.skipTurns -= 1
+      this.touch()
+      this.emitter.emit('turnChanged', {
+        playerId: player.id,
+        session: this.snapshot(),
+      })
+      this.emitter.emit('turnSkipped', {
+        playerId: player.id,
+        remaining: player.skipTurns,
+        session: this.snapshot(),
+      })
+      this.scheduleAfter(SKIP_DELAY_MS, () => this.advanceTurn())
+      return
+    }
+
     this.emitter.emit('turnChanged', {
       playerId: player.id,
       session: this.snapshot(),
@@ -391,12 +586,17 @@ export class MockGameClient implements GameClient {
     if (this.session) this.session.lastActivityAt = Date.now()
   }
 
-  /** Agenda uma ação cancelável (limpa em `dispose`). */
+  /** Agenda uma ação cancelável no ritmo padrão dos bots. */
   private schedule(fn: () => void): void {
+    this.scheduleAfter(this.botDelayMs, fn)
+  }
+
+  /** Agenda uma ação cancelável após `ms` (limpa em `dispose`). */
+  private scheduleAfter(ms: number, fn: () => void): void {
     const timer = setTimeout(() => {
       this.timers.delete(timer)
       fn()
-    }, this.botDelayMs)
+    }, ms)
     this.timers.add(timer)
   }
 }

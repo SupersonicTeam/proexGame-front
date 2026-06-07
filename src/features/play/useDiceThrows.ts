@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getGameClient, useGameStore } from '../../game/store/gameStore'
 import type {
+  AnswerResultEvent,
   DiceResultEvent,
   GameStartedEvent,
   OrderResultEvent,
@@ -91,6 +92,12 @@ export function useDiceThrows(): DiceThrowsApi {
       enqueue({ id: idRef.current, kind: 'order', value: mine.value })
     }
 
+    // Movimento por resposta (acerto/erro) não passa pelo overlay do dado;
+    // move o peão diretamente quando o resultado chega.
+    const onAnswer = (e: AnswerResultEvent) => {
+      setVisualSquares((prev) => ({ ...prev, [e.playerId]: e.toSquare }))
+    }
+
     const onStarted = (e: GameStartedEvent) => {
       // Reinicia a fila e fixa as posições visuais iniciais (todas em 0).
       queueRef.current = []
@@ -104,11 +111,13 @@ export function useDiceThrows(): DiceThrowsApi {
 
     client.on('diceResult', onDice)
     client.on('orderResult', onOrder)
+    client.on('answerResult', onAnswer)
     client.on('gameStarted', onStarted)
 
     return () => {
       client.off('diceResult', onDice)
       client.off('orderResult', onOrder)
+      client.off('answerResult', onAnswer)
       client.off('gameStarted', onStarted)
       if (nextTimer.current) clearTimeout(nextTimer.current)
     }

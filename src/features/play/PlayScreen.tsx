@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   useCurrentTurnPlayer,
   useGameStore,
@@ -11,6 +11,7 @@ import { Dice3D } from '../../ui/Dice3D'
 import { colorForIndex, toPlayerViews } from './playerViews'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
+import { QuestionModal } from './QuestionModal'
 
 /** Tela de jogo: tabuleiro + HUD de turno. Cobre as fases 'order' e 'playing'. */
 export function PlayScreen() {
@@ -21,6 +22,12 @@ export function PlayScreen() {
   const rollForOrder = useGameStore((s) => s.rollForOrder)
   const rollDice = useGameStore((s) => s.rollDice)
   const myPlayerId = useGameStore((s) => s.myPlayerId)
+  const question = useGameStore((s) => s.question)
+  const lastAnswer = useGameStore((s) => s.lastAnswer)
+  const turnSkipped = useGameStore((s) => s.turnSkipped)
+  const submitAnswer = useGameStore((s) => s.submitAnswer)
+  const clearQuestion = useGameStore((s) => s.clearQuestion)
+  const clearTurnSkipped = useGameStore((s) => s.clearTurnSkipped)
 
   const me = useMyPlayer()
   const currentPlayer = useCurrentTurnPlayer()
@@ -28,6 +35,13 @@ export function PlayScreen() {
 
   const { activeThrow, visualSquares, isThrowing, onThrowSettled } =
     useDiceThrows()
+
+  // Some o aviso de "preso" sozinho.
+  useEffect(() => {
+    if (!turnSkipped) return
+    const t = setTimeout(clearTurnSkipped, 1800)
+    return () => clearTimeout(t)
+  }, [turnSkipped, clearTurnSkipped])
 
   // Posições VISUAIS: o peão só anda depois que o dado assenta (visualSquares),
   // por isso usamos elas no lugar de `session.players.square`.
@@ -150,6 +164,31 @@ export function PlayScreen() {
       </aside>
 
       <DiceThrowOverlay active={activeThrow} onSettled={onThrowSettled} />
+
+      {/* Pergunta do jogador local — só após o dado/peão assentarem. */}
+      {question && !isThrowing && (
+        <QuestionModal
+          key={question.questionId}
+          question={question}
+          lastAnswer={lastAnswer}
+          onSubmit={(optionIndex) =>
+            submitAnswer({ questionId: question.questionId, optionIndex })
+          }
+          onClose={clearQuestion}
+        />
+      )}
+
+      {/* Aviso de presídio (perde a vez). */}
+      {turnSkipped && (
+        <div className="pointer-events-none fixed inset-x-0 top-6 z-30 flex justify-center px-4">
+          <div className="rounded-2xl bg-slate-800 px-5 py-3 text-center font-bold text-white shadow-xl">
+            🔒{' '}
+            {turnSkipped.playerId === myPlayerId
+              ? 'Você está preso! Perde a vez.'
+              : `${session.players.find((p) => p.id === turnSkipped.playerId)?.name ?? 'Jogador'} está preso e perde a vez.`}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

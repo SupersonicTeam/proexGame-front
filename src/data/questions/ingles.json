@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ing-0001",
+    "subject": "ingles",
+    "statement": "Qual é a tradução da palavra 'house' para o português?",
+    "correct": "casa",
+    "proximal": "lar",
+    "wrong": ["carro", "cavalo"]
+  },
+  {
+    "id": "ing-0002",
+    "subject": "ingles",
+    "statement": "Qual é o passado do verbo 'to go'?",
+    "correct": "went",
+    "proximal": "goed",
+    "wrong": ["gone", "going"]
+  },
+  {
+    "id": "ing-0003",
+    "subject": "ingles",
+    "statement": "Como se diz 'segunda-feira' em inglês?",
+    "correct": "Monday",
+    "proximal": "Sunday",
+    "wrong": ["March", "Morning"]
+  },
+  {
+    "id": "ing-0004",
+    "subject": "ingles",
+    "statement": "Qual artigo indefinido completa: '___ apple a day'?",
+    "correct": "An",
+    "proximal": "A",
+    "wrong": ["The", "Of"]
+  },
+  {
+    "id": "ing-0005",
+    "subject": "ingles",
+    "statement": "Qual é o plural de 'child' em inglês?",
+    "correct": "children",
+    "proximal": "childs",
+    "wrong": ["childes", "childrens"]
+  },
+  {
+    "id": "ing-0006",
+    "subject": "ingles",
+    "statement": "Qual pronome substitui 'Mary and I' em inglês?",
+    "correct": "We",
+    "proximal": "They",
+    "wrong": ["You", "She"]
+  }
+]

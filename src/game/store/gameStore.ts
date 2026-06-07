@@ -1,14 +1,17 @@
 import { create } from 'zustand'
 import type {
+  AnswerResultEvent,
   CreateSessionInput,
   DiceResultEvent,
   GameOverEvent,
   JoinSessionInput,
   OrderResultEvent,
   Player,
+  QuestionPromptEvent,
   RankingEntry,
   SessionState,
   SubmitAnswerInput,
+  TurnSkippedEvent,
 } from '../types'
 import { createGameClient } from '../client'
 import type { GameClient, MockGameClientOptions } from '../client'
@@ -37,6 +40,10 @@ export interface GameStoreState {
   winner: RankingEntry | null
   ranking: RankingEntry[]
   error: string | null
+  /* pergunta atual (só do jogador local) + resultado + aviso de presídio */
+  question: QuestionPromptEvent | null
+  lastAnswer: AnswerResultEvent | null
+  turnSkipped: TurnSkippedEvent | null
 
   /* ações (componente → client) */
   createSession: (input: CreateSessionInput) => void
@@ -46,6 +53,8 @@ export interface GameStoreState {
   rollDice: () => void
   submitAnswer: (input: SubmitAnswerInput) => void
   leaveSession: () => void
+  clearQuestion: () => void
+  clearTurnSkipped: () => void
   reset: () => void
 }
 
@@ -99,6 +108,9 @@ const initialState = {
   winner: null,
   ranking: [] as RankingEntry[],
   error: null,
+  question: null,
+  lastAnswer: null,
+  turnSkipped: null,
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => {
@@ -125,7 +137,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   })
 
   client.on('gameStarted', ({ session }) => {
-    set({ session, phase: derivePhase(session, false), order: null })
+    set({
+      session,
+      phase: derivePhase(session, false),
+      order: null,
+      question: null,
+      lastAnswer: null,
+      turnSkipped: null,
+    })
   })
 
   client.on('orderResult', (order) => {
@@ -133,7 +152,36 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   })
 
   client.on('turnChanged', ({ session }) => {
-    set({ session, phase: derivePhase(session, true) })
+    // Ao trocar de turno, qualquer pergunta/aviso pendente é descartado.
+    set({
+      session,
+      phase: derivePhase(session, true),
+      question: null,
+      turnSkipped: null,
+    })
+  })
+
+  client.on('questionPrompt', (question) => {
+    set({ question, lastAnswer: null })
+  })
+
+  client.on('answerResult', (lastAnswer) => {
+    // Atualiza a casa do jogador no estado local (placar) além do board visual.
+    const session = get().session
+    if (session) {
+      const players: Player[] = session.players.map((p) =>
+        p.id === lastAnswer.playerId
+          ? { ...p, square: lastAnswer.toSquare }
+          : p,
+      )
+      set({ lastAnswer, session: { ...session, players } })
+    } else {
+      set({ lastAnswer })
+    }
+  })
+
+  client.on('turnSkipped', (turnSkipped) => {
+    set({ turnSkipped })
   })
 
   client.on('diceResult', (lastDice) => {
@@ -184,6 +232,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     rollDice: () => client.rollDice(),
     submitAnswer: (input) => client.submitAnswer(input),
     leaveSession: () => client.leaveSession(),
+    clearQuestion: () => set({ question: null, lastAnswer: null }),
+    clearTurnSkipped: () => set({ turnSkipped: null }),
     reset: () => {
       if (finishTimer) {
         clearTimeout(finishTimer)

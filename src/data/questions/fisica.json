@@ -1,0 +1,50 @@
+[
+  {
+    "id": "fis-0001",
+    "subject": "fisica",
+    "statement": "Qual é a unidade de medida de força no Sistema Internacional?",
+    "correct": "Newton",
+    "proximal": "Joule",
+    "wrong": ["Metro", "Watt"]
+  },
+  {
+    "id": "fis-0002",
+    "subject": "fisica",
+    "statement": "Aproximadamente, qual é a velocidade da luz no vácuo?",
+    "correct": "300.000 km/s",
+    "proximal": "300.000 km/h",
+    "wrong": ["1.500 km/s", "3.000 km/s"]
+  },
+  {
+    "id": "fis-0003",
+    "subject": "fisica",
+    "statement": "Qual grandeza física é medida em quilogramas?",
+    "correct": "Massa",
+    "proximal": "Peso",
+    "wrong": ["Volume", "Temperatura"]
+  },
+  {
+    "id": "fis-0004",
+    "subject": "fisica",
+    "statement": "Qual cientista formulou as três leis do movimento?",
+    "correct": "Isaac Newton",
+    "proximal": "Albert Einstein",
+    "wrong": ["Galileu Galilei", "Nikola Tesla"]
+  },
+  {
+    "id": "fis-0005",
+    "subject": "fisica",
+    "statement": "Qual é a unidade de medida de energia no Sistema Internacional?",
+    "correct": "Joule",
+    "proximal": "Caloria",
+    "wrong": ["Newton", "Ampère"]
+  },
+  {
+    "id": "fis-0006",
+    "subject": "fisica",
+    "statement": "Como se chama a força que atrai os corpos para o centro da Terra?",
+    "correct": "Gravidade",
+    "proximal": "Magnetismo",
+    "wrong": ["Atrito", "Inércia"]
+  }
+]
