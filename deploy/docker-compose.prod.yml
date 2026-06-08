@@ -1,0 +1,12 @@
+# Compose de PRODUÇÃO (VPS) do FRONT. Espelha o do backend: não builda nada —
+# puxa a imagem já publicada no ghcr.io. A tag vem de IMAGE_TAG no .env (o CI
+# atualiza a cada deploy).
+#
+# O contêiner é exposto só em 127.0.0.1:${FRONT_PORT} → o Nginx do host faz o
+# proxy/TLS (ver deploy/nginx-host.conf), igual ao backend.
+services:
+  frontend:
+    image: ghcr.io/supersonicteam/proexgame-front:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${FRONT_PORT:-8080}:80'
