@@ -4,7 +4,7 @@ Front = imagem Docker (Nginx servindo o SPA), igual ao back. A VPS puxa do ghcr
 e sobe via `docker compose`. O Nginx do host faz TLS e roteia para os contêineres.
 
 ## 0. DNS
-Garanta um registro **A** `jogar.weissmurillo.de` → `187.124.243.193`.
+Garanta um registro **A** `jogar.weissmurillo.de` → `<IP_DA_VPS>`.
 
 ## 1. Pasta de deploy + compose + .env
 > ⚠️ Use uma pasta **diferente** da do backend. Os dois workflows escrevem
@@ -50,10 +50,12 @@ docker compose up -d
 ```
 
 ## 5. Secrets no repo do FRONT (GitHub → Settings → Secrets → Actions)
+> Os valores reais ficam **apenas nos GitHub Secrets** — não comitar aqui.
+
 | Secret | Valor |
 | --- | --- |
-| `VPS_HOST` | `187.124.243.193` |
-| `VPS_USER` | `root` |
+| `VPS_HOST` | `<IP da VPS>` |
+| `VPS_USER` | `<usuário SSH>` |
 | `VPS_PORT` | `22` |
 | `VPS_DEPLOY_DIR` | `/opt/proexgame-deploy` |
 | `VPS_SSH_KEY` | **chave PRIVADA** do par `github-deploy-proexgame` (a `ssh-ed25519` que está no `authorized_keys`) — começa com `-----BEGIN OPENSSH PRIVATE KEY-----`. NÃO a pública. |
