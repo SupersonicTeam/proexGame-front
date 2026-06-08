@@ -6,7 +6,9 @@
 # proxy/TLS (ver deploy/nginx-host.conf), igual ao backend.
 services:
   frontend:
-    image: ghcr.io/supersonicteam/proexgame-front:${IMAGE_TAG:-latest}
+    # FRONT_IMAGE deve ser o mesmo caminho que o CI publica:
+    #   ghcr.io/<owner>/<repo> (tudo minúsculo). Definir no .env da VPS.
+    image: ${FRONT_IMAGE:-ghcr.io/supersonicteam/proexgame-front}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - '127.0.0.1:${FRONT_PORT:-8080}:80'
