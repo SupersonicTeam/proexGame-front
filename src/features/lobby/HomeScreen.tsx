@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Difficulty } from '../../game/types'
 import { useGameStore } from '../../game/store/gameStore'
+import { usingBackend } from '../../game/client'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
@@ -83,7 +84,9 @@ export function HomeScreen() {
                 Criar sessão
               </Button>
               <p className="mt-4 text-center text-sm text-slate-500">
-                Você jogará contra 2 oponentes simulados (modo demonstração).
+                {usingBackend
+                  ? 'Compartilhe o código com os outros jogadores para começar (mín. 2).'
+                  : 'Você jogará contra 2 oponentes simulados (modo demonstração).'}
               </p>
             </>
           ) : (

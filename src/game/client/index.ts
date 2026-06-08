@@ -7,6 +7,16 @@ export type { GameClient } from './GameClient'
 export type { MockGameClientOptions } from './MockGameClient'
 
 /**
+ * Verdadeiro quando o app fala com o backend real (build de produção ou
+ * `VITE_BACKEND_URL` definida). Falso = modo demonstração (MockGameClient).
+ * A UI usa isto para não mostrar textos específicos do mock (ex.: "oponentes
+ * simulados") quando está conectada ao servidor.
+ */
+export const usingBackend: boolean = Boolean(
+  import.meta.env.PROD || import.meta.env.VITE_BACKEND_URL,
+)
+
+/**
  * Único ponto de troca da implementação do cliente. Nenhuma tela ou store muda —
  * ambos respeitam a interface `GameClient`.
  *

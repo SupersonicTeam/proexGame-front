@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { TilePoint } from '../types'
 
-const STEP_MS = 180
+const STEP_MS = 300
 
 function prefersReducedMotion(): boolean {
   return (

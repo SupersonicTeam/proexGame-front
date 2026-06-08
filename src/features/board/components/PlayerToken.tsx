@@ -32,7 +32,7 @@ export function PlayerToken({
   return (
     <g
       transform={`translate(${x} ${y})`}
-      style={{ transition: 'transform 160ms ease-out' }}
+      style={{ transition: 'transform 280ms ease-out' }}
       aria-label={`Jogador ${player.name}`}
     >
       {/* Anel pulsante do jogador da vez (CSS: leve e compositor-driven). */}
@@ -49,8 +49,13 @@ export function PlayerToken({
 
       <motion.g
         style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-        animate={{ scaleX: moving ? 1.08 : 1, scaleY: moving ? 0.9 : 1 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 16 }}
+        animate={{
+          // "Pulinho" + squash enquanto anda (suspense no movimento da peça).
+          y: moving ? -radius * 0.3 : 0,
+          scaleX: moving ? 1.06 : 1,
+          scaleY: moving ? 0.92 : 1,
+        }}
+        transition={{ type: 'spring', stiffness: 360, damping: 14 }}
       >
         {/* Sombra. */}
         <ellipse

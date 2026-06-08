@@ -85,6 +85,16 @@ export function Tile({
 
   return (
     <g transform={`translate(${cx} ${cy})`}>
+      {/* Brilho dourado pulsante na casa de chegada (destaque). */}
+      {isFinish && (
+        <circle
+          className="finish-glow"
+          r={radius + 10}
+          fill="#fbbf24"
+          style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+        />
+      )}
+
       <motion.g
         style={{
           transformBox: 'fill-box',
@@ -276,14 +286,14 @@ export function Tile({
  * Coordenadas locais: origem = centro da casa.
  */
 function FinishFlag({ radius }: { radius: number }) {
-  const cell = 5
+  const cell = radius * 0.18
   const cols = 3
   const rows = 2
   const flagW = cols * cell
   const flagH = rows * cell
-  const poleX = radius * 0.34 // canto superior direito
-  const baseY = -radius * 0.42 // base do mastro (dentro da casa)
-  const topY = baseY - 22 // topo do mastro
+  const poleX = radius * 0.3 // canto superior direito
+  const baseY = -radius * 0.45 // base do mastro (dentro da casa)
+  const topY = baseY - radius * 0.78 // topo do mastro
 
   const squares: ReactNode[] = []
   for (let r = 0; r < rows; r++) {
@@ -312,21 +322,26 @@ function FinishFlag({ radius }: { radius: number }) {
         x2={poleX}
         y2={topY}
         stroke="#78350f"
-        strokeWidth={2.5}
+        strokeWidth={radius * 0.08}
         strokeLinecap="round"
       />
-      <circle cx={poleX} cy={topY} r={2.2} fill="#fbbf24" />
-      {/* Pano quadriculado (fundo branco + xadrez). */}
-      <rect
-        x={poleX}
-        y={topY}
-        width={flagW}
-        height={flagH}
-        fill="#ffffff"
-        stroke="#1f2937"
-        strokeWidth={0.8}
-      />
-      {squares}
+      <circle cx={poleX} cy={topY} r={radius * 0.07} fill="#fbbf24" />
+      {/* Pano quadriculado que tremula (pivô no mastro). */}
+      <g
+        className="finish-flag-cloth"
+        style={{ transformBox: 'fill-box', transformOrigin: '0% 50%' }}
+      >
+        <rect
+          x={poleX}
+          y={topY}
+          width={flagW}
+          height={flagH}
+          fill="#ffffff"
+          stroke="#1f2937"
+          strokeWidth={0.8}
+        />
+        {squares}
+      </g>
     </g>
   )
 }

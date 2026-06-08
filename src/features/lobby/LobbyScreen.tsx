@@ -43,8 +43,9 @@ export function LobbyScreen() {
               #{session.code}
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              Dificuldade: {DIFFICULTY_LABEL[session.difficulty]} · Tabuleiro
-              com {session.board.size} casas
+              Dificuldade: {DIFFICULTY_LABEL[session.difficulty]}
+              {session.board.size > 0 &&
+                ` · Tabuleiro com ${session.board.size} casas`}
             </p>
           </div>
 

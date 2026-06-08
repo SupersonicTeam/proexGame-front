@@ -41,6 +41,36 @@ body {
   animation: track-march 0.9s linear infinite;
 }
 
+/* Brilho dourado pulsante na casa de chegada. */
+@keyframes finish-glow-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 0.08;
+  }
+}
+.finish-glow {
+  animation: finish-glow-pulse 1.8s ease-in-out infinite;
+}
+
+/* Bandeira de chegada tremulando ao vento (pivô no mastro). */
+@keyframes finish-flag-wave {
+  0%,
+  100% {
+    transform: rotate(0deg) skewX(0deg) scaleX(1);
+  }
+  50% {
+    transform: rotate(-3deg) skewX(-7deg) scaleX(0.92);
+  }
+}
+.finish-flag-cloth {
+  animation: finish-flag-wave 1.1s ease-in-out infinite;
+}
+
 /* Anel pulsante do jogador da vez. */
 @keyframes turn-ring-pulse {
   0% {

@@ -24,7 +24,9 @@ const SPINS_X = 3
 const SPINS_Y = 5
 const TILT = { x: -28, y: -40 }
 /** Duração do arremesso (s). Mais longo + desaceleração forte = suspense. */
-const THROW_DURATION = 2
+const THROW_DURATION = 2.4
+/** Pausa segurando o resultado antes de fechar/mover (mais suspense). */
+const SETTLE_HOLD_MS = 450
 
 function mod360(a: number): number {
   return ((a % 360) + 360) % 360
@@ -108,7 +110,9 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
           animate={target}
           transition={cubeTransition}
           onAnimationComplete={() => {
-            if (isThrow) onSettled?.()
+            if (!isThrow) return
+            // Segura o resultado por um instante antes de mover o peão.
+            window.setTimeout(() => onSettled?.(), reduced ? 0 : SETTLE_HOLD_MS)
           }}
         >
           {[1, 2, 3, 4, 5, 6].map((v) => {
