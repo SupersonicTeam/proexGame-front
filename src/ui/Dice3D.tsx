@@ -20,9 +20,11 @@ interface Dice3DProps {
   onSettled?: () => void
 }
 
-const SPINS_X = 2
-const SPINS_Y = 3
+const SPINS_X = 3
+const SPINS_Y = 5
 const TILT = { x: -28, y: -40 }
+/** Duração do arremesso (s). Mais longo + desaceleração forte = suspense. */
+const THROW_DURATION = 2
 
 function mod360(a: number): number {
   return ((a % 360) + 360) % 360
@@ -58,7 +60,8 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
 
   const cubeTransition =
     isThrow && !reduced
-      ? { duration: 1.0, ease: [0.16, 0.84, 0.3, 1] as const }
+      ? // Gira rápido no começo e "rasteja" até parar na face (suspense).
+        { duration: THROW_DURATION, ease: [0.05, 0.7, 0.12, 1] as const }
       : { duration: isThrow ? 0 : 0.4, ease: 'easeOut' as const }
 
   return (
@@ -78,14 +81,19 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
         animate={
           isThrow && !reduced
             ? {
-                y: [0, -size * 0.8, 0, -size * 0.18, 0],
-                scale: [1, 1.12, 1, 1.04, 1],
+                // Arremesso alto com uma "pairada" no ar antes de cair e quicar.
+                y: [0, -size * 1.05, -size * 0.92, 0, -size * 0.16, 0],
+                scale: [1, 1.14, 1.1, 1, 1.05, 1],
               }
             : undefined
         }
         transition={
           isThrow && !reduced
-            ? { duration: 1.0, times: [0, 0.4, 0.72, 0.86, 1], ease: 'easeOut' }
+            ? {
+                duration: THROW_DURATION,
+                times: [0, 0.22, 0.45, 0.8, 0.9, 1],
+                ease: 'easeOut',
+              }
             : undefined
         }
       >

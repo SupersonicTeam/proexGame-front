@@ -98,9 +98,9 @@ export class MockGameClient implements GameClient {
   constructor(options: MockGameClientOptions = {}) {
     this.rng = options.rng ?? Math.random
     this.botCount = options.botCount ?? 2
-    // Ritmo dos bots alinhado à animação de arremesso do dado (overlay ~1s +
-    // movimento do peão), para a fila de playback não acumular.
-    this.botDelayMs = options.botDelayMs ?? 2000
+    // Ritmo dos bots alinhado à animação de arremesso do dado (~2s + movimento
+    // do peão), para a fila de playback não acumular.
+    this.botDelayMs = options.botDelayMs ?? 2800
   }
 
   /* ------------------------------------------------------------------ */

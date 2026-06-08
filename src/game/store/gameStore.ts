@@ -96,7 +96,7 @@ export function getGameClient(): GameClient {
 }
 
 /** Atraso antes de exibir a tela de resultado, p/ a última rolagem animar. */
-const FINISH_DELAY_MS = 1200
+const FINISH_DELAY_MS = 2400
 let finishTimer: ReturnType<typeof setTimeout> | null = null
 
 const initialState = {
