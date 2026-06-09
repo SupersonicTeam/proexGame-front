@@ -25,6 +25,14 @@ export interface ThrowItem {
 /** Tempo após o dado assentar para o peão andar antes do próximo arremesso. */
 const POST_MOVE_MS = 700
 
+/**
+ * Limite de segurança para um arremesso assentar. Se o `onSettled` do dado não
+ * disparar (animação interrompida/desmontada), forçamos o assentamento para o
+ * peão não ficar preso e o modal de pergunta (gated por `!isThrowing`) não sumir.
+ * Folgado o bastante para nunca cortar a animação normal (~2,4s).
+ */
+const SETTLE_SAFETY_MS = 5000
+
 export interface DiceThrowsApi {
   activeThrow: ThrowItem | null
   visualSquares: Record<string, number>
@@ -70,10 +78,28 @@ export function useDiceThrows(): DiceThrowsApi {
     nextTimer.current = setTimeout(processNext, POST_MOVE_MS)
   }, [processNext])
 
+  // Rede de segurança: se um arremesso fica ativo além do limite (o `onSettled`
+  // do dado não disparou), força o assentamento. Evita o peão preso e o modal de
+  // pergunta sumido por `isThrowing` travado em true.
+  useEffect(() => {
+    if (!activeThrow) return
+    const w = setTimeout(onThrowSettled, SETTLE_SAFETY_MS)
+    return () => clearTimeout(w)
+  }, [activeThrow, onThrowSettled])
+
   useEffect(() => {
     const client = getGameClient()
 
     const onDice = (e: DiceResultEvent) => {
+      // Ancora a posição VISUAL na ORIGEM antes do movimento lógico. Sem isto,
+      // se o jogador ainda não tem entrada em `visualSquares`, a UI cai na casa
+      // lógica (já atualizada para o destino) e o peão "salta" durante a rolagem
+      // (bug: peão move enquanto o dado rola). Só semeia se faltar a entrada.
+      setVisualSquares((prev) =>
+        prev[e.playerId] !== undefined
+          ? prev
+          : { ...prev, [e.playerId]: e.fromSquare },
+      )
       idRef.current += 1
       enqueue({
         id: idRef.current,
