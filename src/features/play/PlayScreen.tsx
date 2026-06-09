@@ -8,7 +8,8 @@ import {
 import { BoardSvg } from '../board'
 import { Button } from '../../ui/Button'
 import { Dice3D } from '../../ui/Dice3D'
-import { colorForIndex, toPlayerViews } from './playerViews'
+import { colorForIndex, tierMeta, toPlayerViews } from './playerViews'
+import { computeTiers } from '../../game/engine'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
 import { QuestionModal } from './QuestionModal'
@@ -57,6 +58,18 @@ export function PlayScreen() {
           )
         : [],
     [session, myPlayerId, visualSquares],
+  )
+
+  // Tiers de catch-up (§3): recalculados pelas posições atuais de jogo, então
+  // mudam a cada turno. Derivados (display puro) — não precisam de autoridade.
+  const tiers = useMemo(
+    () =>
+      session
+        ? computeTiers(
+            session.players.map((p) => ({ id: p.id, square: p.square })),
+          )
+        : {},
+    [session],
   )
 
   if (!session) return null
@@ -154,6 +167,18 @@ export function PlayScreen() {
                     <span className="ml-1 text-xs text-brand">(você)</span>
                   )}
                 </span>
+                {tiers[player.id] && (
+                  <span
+                    className={
+                      'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ' +
+                      tierMeta(tiers[player.id]).className
+                    }
+                    title="Tier de catch-up (recalculado a cada turno)"
+                  >
+                    {tierMeta(tiers[player.id]).icon}{' '}
+                    {tierMeta(tiers[player.id]).label}
+                  </span>
+                )}
                 <span className="text-sm font-bold text-slate-500">
                   Casa {player.square}/{session.board.size}
                 </span>

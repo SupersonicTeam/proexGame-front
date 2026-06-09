@@ -30,6 +30,13 @@ export type TileType = 'normal' | 'question' | 'prison'
 export type AnswerErrorType = 'proximal' | 'wrong'
 
 /**
+ * Tier de posição (catch-up, §3/§4), recalculado no início de cada turno pela
+ * casa atual. `leader` = mais à frente; `last` = mais atrás; `middle` = demais.
+ * Em partida de 2, só `leader`/`last`. Define o bônus `T_p` (leader 0/middle 1/last 2).
+ */
+export type Tier = 'leader' | 'middle' | 'last'
+
+/**
  * Descritor do tabuleiro. Índices de casa vão de 0 a `size` (inclusive):
  * casa 0 = INÍCIO, casa `size` = CHEGADA. Total de casas = `size + 1` (RF-06).
  *
@@ -166,6 +173,19 @@ export interface AnswerResultEvent {
    * (RF-16 — a correta nunca trafega, nem após responder). Presente só no mock.
    */
   correctIndex?: number
+  /**
+   * Detalhamento do movimento de acerto (§4) — CONTRACT-S3, aditivo e opcional.
+   * Preenchidos pelo mock e (após aceite do backend) pelo servidor. Quando
+   * ausentes, a UI mostra só o total (`movement`).
+   */
+  /** Tier do jogador no início do turno (congelado para o turno). */
+  tier?: Tier
+  /** Avanço-base por dificuldade (`C_d`). 0 em recuo. */
+  baseAdvance?: number
+  /** Bônus de catch-up por tier (`T_p`): leader 0/middle 1/last 2. 0 em recuo. */
+  tierBonus?: number
+  /** `true` se o nudge anti-encadeamento deslocou a casa-alvo (§4). */
+  nudged?: boolean
 }
 export interface GameOverEvent {
   winner: RankingEntry

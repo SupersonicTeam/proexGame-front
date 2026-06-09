@@ -8,7 +8,11 @@ export {
   retreatForError,
   applyAdvance,
   applyRetreat,
+  applyNudge,
+  applyCorrectMovement,
+  isQuestionSquare,
 } from './movement'
+export { computeTiers, tierBonus } from './tiers'
 export { generateBoard } from './board'
 export { selectQuestion, buildOptions } from './questionPool'
 export { generateSessionCode } from './code'
