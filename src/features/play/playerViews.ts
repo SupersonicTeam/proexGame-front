@@ -1,6 +1,22 @@
-import type { Player } from '../../game/types'
+import type { Player, Tier } from '../../game/types'
 import type { PlayerView } from '../board'
 import { TOKEN_COLORS } from '../board/theme'
+
+/**
+ * Rótulo visual de cada tier de catch-up (§3/§4). Exibido ao vivo no painel
+ * de posições; o tier de `last` sinaliza o impulso de recuperação.
+ */
+const TIER_META: Record<Tier, { label: string; icon: string; className: string }> =
+  {
+    leader: { label: 'Líder', icon: '👑', className: 'bg-amber-100 text-amber-700' },
+    middle: { label: 'Meio', icon: '•', className: 'bg-slate-200 text-slate-500' },
+    last: { label: 'Impulso', icon: '🚀', className: 'bg-sky-100 text-sky-700' },
+  }
+
+/** Metadados de exibição (rótulo/ícone/cor) de um tier. */
+export function tierMeta(tier: Tier) {
+  return TIER_META[tier]
+}
 
 /**
  * Converte os jogadores da sessão para a forma que o tabuleiro precisa,

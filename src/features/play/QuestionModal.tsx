@@ -119,7 +119,20 @@ export function QuestionModal({
 function feedbackText(answer: AnswerResultEvent): string {
   const steps = Math.abs(answer.movement)
   if (answer.correct) {
-    return steps > 0 ? `Acertou! Avançou ${steps} casa(s) 🎉` : 'Acertou! 🎉'
+    if (steps === 0) return 'Acertou! 🎉'
+    // Breakdown de catch-up (§4) quando o backend/mock envia o detalhamento.
+    // Só exibe a soma quando base+impulso == total real — assim o nudge
+    // anti-encadeamento (que pode deslocar ±1) permanece silencioso.
+    const { baseAdvance, tierBonus } = answer
+    if (
+      typeof baseAdvance === 'number' &&
+      typeof tierBonus === 'number' &&
+      tierBonus > 0 &&
+      baseAdvance + tierBonus === steps
+    ) {
+      return `Acertou! +${baseAdvance} base +${tierBonus} impulso = +${steps} casas 🚀`
+    }
+    return `Acertou! Avançou ${steps} casa(s) 🎉`
   }
   const prefix = answer.errorType === 'proximal' ? 'Quase!' : 'Errou.'
   return steps > 0 ? `${prefix} Recuou ${steps} casa(s)` : `${prefix}`
