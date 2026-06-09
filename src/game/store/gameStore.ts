@@ -148,7 +148,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   })
 
   client.on('orderResult', (order) => {
-    set({ order })
+    // Quando a ordem é resolvida (turnOrder definido), entra direto em 'playing'
+    // de forma determinística — sem depender da chegada de turnChanged nem da
+    // corrida com gameStarted, que às vezes deixava o passo de ordem piscar ou
+    // ser pulado de forma inconsistente. Empate (turnOrder null) mantém a fase.
+    const session = get().session
+    set(order.turnOrder ? { order, phase: derivePhase(session, true) } : { order })
   })
 
   client.on('turnChanged', ({ session }) => {
