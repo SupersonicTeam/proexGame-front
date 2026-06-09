@@ -10,16 +10,17 @@ import type {
   SessionState,
   Subject,
   SubmitAnswerInput,
+  Tier,
   TileType,
 } from '../types'
 import type { GameClient } from './GameClient'
 import { TypedEmitter } from './emitter'
 import {
-  advanceForCorrect,
-  applyAdvance,
+  applyCorrectMovement,
   applyDiceMove,
   applyRetreat,
   buildOptions,
+  computeTiers,
   generateBoard,
   generateSessionCode,
   retreatForError,
@@ -94,6 +95,11 @@ export class MockGameClient implements GameClient {
   /** Perguntas já usadas na sessão (RF-09: sem repetição). */
   private usedQuestionIds = new Set<string>()
   private pendingQuestion: PendingQuestion | null = null
+  /**
+   * Tier do jogador da vez, CONGELADO no início do turno (S3-F01). Reutilizado
+   * em todos os acertos do turno — encadeamento NÃO recalcula.
+   */
+  private currentTier: Tier = 'leader'
 
   constructor(options: MockGameClientOptions = {}) {
     this.rng = options.rng ?? Math.random
@@ -437,12 +443,24 @@ export class MockGameClient implements GameClient {
     let toSquare: number
     let won = false
     let errorType: AnswerErrorType | null = null
+    // Breakdown do avanço (§4). No recuo, sem bônus e sem nudge.
+    let baseAdvance = 0
+    let tierBonus = 0
+    let nudged = false
 
     if (correct) {
-      const amount = advanceForCorrect(this.session.difficulty)
-      const r = applyAdvance(fromSquare, amount, this.session.board.size)
+      const r = applyCorrectMovement({
+        fromSquare,
+        difficulty: this.session.difficulty,
+        tier: this.currentTier,
+        board: this.session.board,
+        rng: this.rng,
+      })
       toSquare = r.toSquare
       won = r.won
+      baseAdvance = r.baseAdvance
+      tierBonus = r.tierBonus
+      nudged = r.nudged
     } else {
       errorType = optionIndex === pq.proximalIndex ? 'proximal' : 'wrong'
       const amount = retreatForError(errorType, this.session.difficulty)
@@ -459,6 +477,12 @@ export class MockGameClient implements GameClient {
       fromSquare,
       toSquare,
       correctIndex: pq.correctIndex,
+      // Campos de breakdown do catch-up (S3-F09). `tier` é informativo no erro
+      // (sem bônus); base/bonus/nudge refletem o pipeline de acerto.
+      tier: this.currentTier,
+      baseAdvance,
+      tierBonus,
+      nudged,
     })
 
     if (won) {
@@ -492,6 +516,12 @@ export class MockGameClient implements GameClient {
   private announceTurn(): void {
     const player = this.currentPlayer()
     if (!player || !this.session) return
+
+    // Congela o tier do jogador da vez (S3-F01): vale para todos os acertos do
+    // turno (encadeamento reutiliza, não recalcula).
+    this.currentTier = computeTiers(
+      this.session.players.map((p) => ({ id: p.id, square: p.square })),
+    )[player.id]
 
     // Preso: perde a vez (RF-20). Decrementa, avisa e passa sem rolar.
     if (player.skipTurns > 0) {

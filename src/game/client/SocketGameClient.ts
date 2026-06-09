@@ -31,6 +31,7 @@ import type {
   SessionStatus,
   Subject,
   SubmitAnswerInput,
+  Tier,
   TileType,
 } from '../types'
 import type { GameClient } from './GameClient'
@@ -76,6 +77,15 @@ interface RawAnswerResult {
   movement: number
   fromSquare: number
   toSquare: number
+  /**
+   * Detalhamento do movimento de acerto (§4) — CONTRACT-S3, ADITIVO e OPCIONAL.
+   * O backend S2 atual NÃO envia estes campos; só aparecem após o aceite da
+   * proposta S3. Quando ausentes, ficam `undefined` (degradação graciosa).
+   */
+  tier?: Tier
+  baseAdvance?: number
+  tierBonus?: number
+  nudged?: boolean
 }
 
 function buildBoard(raw: RawBoard): SessionState['board'] {
@@ -252,6 +262,9 @@ export class SocketGameClient implements GameClient {
       this.setSquare(raw.playerId, raw.toSquare)
       const errorType: AnswerErrorType | null =
         raw.errorType === 'none' ? null : raw.errorType
+      // Repassa o breakdown de acerto (§4) APENAS quando o backend o envia
+      // (CONTRACT-S3, aditivo). Sem os campos, ficam `undefined` e a UI cai no
+      // fallback (mostra só `movement`). NÃO inventamos valores aqui.
       this.emitter.emit('answerResult', {
         playerId: raw.playerId,
         correct: raw.correct,
@@ -259,6 +272,10 @@ export class SocketGameClient implements GameClient {
         movement: raw.movement,
         fromSquare: raw.fromSquare,
         toSquare: raw.toSquare,
+        tier: raw.tier,
+        baseAdvance: raw.baseAdvance,
+        tierBonus: raw.tierBonus,
+        nudged: raw.nudged,
       })
     })
 
