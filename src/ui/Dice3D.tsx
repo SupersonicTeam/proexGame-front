@@ -115,6 +115,25 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
             window.setTimeout(() => onSettled?.(), reduced ? 0 : SETTLE_HOLD_MS)
           }}
         >
+          {/* Núcleo opaco: 6 faces sólidas (quadradas, sem arredondar) logo
+              atrás das faces com pips. Preenchem as quinas para o cubo nunca
+              deixar ver o fundo durante o giro (bug "cantos invisíveis"). */}
+          {[1, 2, 3, 4, 5, 6].map((v) => {
+            const t = FACE_TRANSFORMS[v]
+            return (
+              <div
+                key={`core-${v}`}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: `rotateX(${t.rotX}deg) rotateY(${t.rotY}deg) translateZ(${half - 1.5}px)`,
+                  backfaceVisibility: 'hidden',
+                  background: '#e2e8f0',
+                  borderRadius: size * 0.04,
+                }}
+              />
+            )
+          })}
           {[1, 2, 3, 4, 5, 6].map((v) => {
             const t = FACE_TRANSFORMS[v]
             return (
@@ -143,7 +162,7 @@ function DiceFace({ value, size }: { value: number; size: number }) {
   return (
     <div
       style={{ width: size, height: size }}
-      className="grid grid-cols-3 grid-rows-3 gap-1 rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-white to-slate-100 p-[12%] shadow-inner"
+      className="grid grid-cols-3 grid-rows-3 gap-1 rounded-md border-2 border-slate-300 bg-gradient-to-br from-white to-slate-100 p-[12%] shadow-inner"
     >
       {Array.from({ length: 9 }, (_, i) => {
         const row = Math.floor(i / 3)

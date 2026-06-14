@@ -28,6 +28,7 @@ export function PlayerToken({
   const x = cx + offset.dx
   const y = cy + offset.dy
   const initial = player.name.trim().charAt(0).toUpperCase() || '?'
+  const glossId = `tok-gloss-${player.id}`
 
   return (
     <g
@@ -57,7 +58,15 @@ export function PlayerToken({
         }}
         transition={{ type: 'spring', stiffness: 360, damping: 14 }}
       >
-        {/* Sombra. */}
+        <defs>
+          {/* Verniz glossy: branco translúcido no alto-esquerdo, some no centro. */}
+          <radialGradient id={glossId} cx="34%" cy="26%" r="78%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.6} />
+            <stop offset="42%" stopColor="#ffffff" stopOpacity={0.12} />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+          </radialGradient>
+        </defs>
+        {/* Sombra projetada no chão. */}
         <ellipse
           cx={0}
           cy={radius * 0.85}
@@ -73,14 +82,24 @@ export function PlayerToken({
           stroke="#ffffff"
           strokeWidth={player.isCurrentUser ? 3.5 : 2.5}
         />
-        {/* Brilho. */}
+        {/* Aro interno escuro para dar volume. */}
+        <circle
+          r={radius - 1.5}
+          fill="none"
+          stroke="#0f172a"
+          strokeOpacity={0.18}
+          strokeWidth={1.5}
+        />
+        {/* Verniz glossy (esfera 3D). */}
+        <circle r={radius - 1} fill={`url(#${glossId})`} />
+        {/* Brilho especular. */}
         <ellipse
-          cx={-radius * 0.28}
-          cy={-radius * 0.34}
-          rx={radius * 0.36}
-          ry={radius * 0.24}
+          cx={-radius * 0.3}
+          cy={-radius * 0.36}
+          rx={radius * 0.3}
+          ry={radius * 0.18}
           fill="#ffffff"
-          opacity={0.45}
+          opacity={0.5}
         />
         {/* Inicial. */}
         <text

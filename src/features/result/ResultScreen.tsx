@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { useGameStore } from '../../game/store/gameStore'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
+import { Confetti } from '../../ui/Confetti'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
@@ -12,8 +14,16 @@ export function ResultScreen() {
   const myPlayerId = useGameStore((s) => s.myPlayerId)
   const reset = useGameStore((s) => s.reset)
 
+  // Chuva de confete ao abrir a tela; some após alguns segundos para liberar o DOM.
+  const [showConfetti, setShowConfetti] = useState(true)
+  useEffect(() => {
+    const t = setTimeout(() => setShowConfetti(false), 6000)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <Screen center>
+      {showConfetti && <Confetti />}
       <div className="w-full max-w-lg">
         <div className="mb-8 text-center text-white drop-shadow">
           <p className="text-7xl">🎉</p>
