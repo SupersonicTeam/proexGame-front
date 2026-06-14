@@ -10,6 +10,7 @@ import { Button } from '../../ui/Button'
 import { Dice3D } from '../../ui/Dice3D'
 import { colorForIndex, tierMeta, toPlayerViews } from './playerViews'
 import { computeTiers } from '../../game/engine'
+import { usePlayerCustomization } from '../lobby/usePlayerCustomization'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
 import { QuestionModal } from './QuestionModal'
@@ -33,6 +34,8 @@ export function PlayScreen() {
   const me = useMyPlayer()
   const currentPlayer = useCurrentTurnPlayer()
   const isMyTurn = useIsMyTurn()
+  const pawnColor = usePlayerCustomization((s) => s.color)
+  const pawnEmoji = usePlayerCustomization((s) => s.emoji)
 
   const { activeThrow, visualSquares, isThrowing, onThrowSettled } =
     useDiceThrows()
@@ -55,9 +58,10 @@ export function PlayScreen() {
               square: visualSquares[p.id] ?? p.square,
             })),
             myPlayerId,
+            { color: pawnColor, emoji: pawnEmoji },
           )
         : [],
-    [session, myPlayerId, visualSquares],
+    [session, myPlayerId, visualSquares, pawnColor, pawnEmoji],
   )
 
   // Tiers de catch-up (§3): recalculados pelas posições atuais de jogo, então
@@ -78,6 +82,15 @@ export function PlayScreen() {
   const lastDicePlayer = lastDice
     ? session.players.find((p) => p.id === lastDice.playerId)
     : null
+
+  // Cor de um jogador no HUD: o jogador local usa a cor customizada (se houver);
+  // os demais usam a cor estável por índice. Mantém o HUD coerente com o peão.
+  const colorFor = (playerId?: string): string => {
+    if (!playerId) return '#334155'
+    if (playerId === myPlayerId && pawnColor) return pawnColor
+    const idx = session.players.findIndex((p) => p.id === playerId)
+    return colorForIndex(idx < 0 ? 0 : idx)
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-gradient-to-b from-slate-100 to-slate-200 lg:flex-row">
@@ -117,7 +130,7 @@ export function PlayScreen() {
             </p>
             <p
               className="mb-3 text-lg font-black"
-              style={{ color: tokenColorOf(session, currentPlayer?.id) }}
+              style={{ color: colorFor(currentPlayer?.id) }}
             >
               {isMyTurn ? me?.name : (currentPlayer?.name ?? '—')}
             </p>
@@ -147,7 +160,7 @@ export function PlayScreen() {
         <section>
           <p className="mb-2 text-sm font-semibold text-slate-700">Posições</p>
           <ul className="space-y-2">
-            {standings(session.players).map(({ player, index }) => (
+            {standings(session.players).map(({ player }) => (
               <li
                 key={player.id}
                 className={
@@ -159,7 +172,7 @@ export function PlayScreen() {
               >
                 <span
                   className="h-5 w-5 shrink-0 rounded-full ring-2 ring-white"
-                  style={{ backgroundColor: colorForIndex(index) }}
+                  style={{ backgroundColor: colorFor(player.id) }}
                 />
                 <span className="flex-1 truncate font-semibold text-slate-800">
                   {player.name}
@@ -259,18 +272,9 @@ function OrderPanel({
   )
 }
 
-/** Jogadores ordenados por casa (desc), preservando índice original p/ cor. */
+/** Jogadores ordenados por casa (desc). */
 function standings(players: { id: string; name: string; square: number }[]) {
   return players
-    .map((player, index) => ({ player, index }))
+    .map((player) => ({ player }))
     .sort((a, b) => b.player.square - a.player.square)
-}
-
-function tokenColorOf(
-  session: { players: { id: string }[] },
-  playerId: string | undefined,
-): string {
-  if (!playerId) return '#334155'
-  const idx = session.players.findIndex((p) => p.id === playerId)
-  return colorForIndex(idx < 0 ? 0 : idx)
 }
