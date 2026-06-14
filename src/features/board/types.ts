@@ -12,6 +12,8 @@ export interface PlayerView {
   color: string
   square: number
   isCurrentUser?: boolean
+  /** Emoji opcional do peão (customização local); ausente = usa a inicial. */
+  emoji?: string
 }
 
 /** Props do componente raiz `BoardSvg`. */

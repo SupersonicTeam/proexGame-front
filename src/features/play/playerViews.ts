@@ -18,21 +18,36 @@ export function tierMeta(tier: Tier) {
   return TIER_META[tier]
 }
 
+/** Customização LOCAL do peão do jogador (aplicada só ao próprio token). */
+export interface LocalPawn {
+  color?: string
+  emoji?: string
+}
+
 /**
  * Converte os jogadores da sessão para a forma que o tabuleiro precisa,
- * atribuindo uma cor estável por índice e marcando o jogador local.
+ * atribuindo uma cor estável por índice e marcando o jogador local. A
+ * customização (`custom`) sobrepõe cor/emoji APENAS do jogador local.
  */
 export function toPlayerViews(
   players: Player[],
   myPlayerId: string | null,
+  custom?: LocalPawn,
 ): PlayerView[] {
-  return players.map((p, i) => ({
-    id: p.id,
-    name: p.name,
-    color: TOKEN_COLORS[i % TOKEN_COLORS.length],
-    square: p.square,
-    isCurrentUser: p.id === myPlayerId,
-  }))
+  return players.map((p, i) => {
+    const isMe = p.id === myPlayerId
+    return {
+      id: p.id,
+      name: p.name,
+      color:
+        isMe && custom?.color
+          ? custom.color
+          : TOKEN_COLORS[i % TOKEN_COLORS.length],
+      square: p.square,
+      isCurrentUser: isMe,
+      emoji: isMe && custom?.emoji ? custom.emoji : undefined,
+    }
+  })
 }
 
 /** Cor do token de um jogador pelo seu índice na lista da sessão. */

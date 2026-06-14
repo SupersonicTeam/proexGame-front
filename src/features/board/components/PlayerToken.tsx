@@ -101,22 +101,35 @@ export function PlayerToken({
           fill="#ffffff"
           opacity={0.5}
         />
-        {/* Inicial. */}
-        <text
-          x={0}
-          y={0}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={radius * 0.92}
-          fontWeight={800}
-          fill="#ffffff"
-          stroke={player.color}
-          strokeWidth={radius * 0.04}
-          paintOrder="stroke"
-          style={{ userSelect: 'none' }}
-        >
-          {initial}
-        </text>
+        {/* Emoji customizado (sem contorno) ou a inicial do nome. */}
+        {player.emoji ? (
+          <text
+            x={0}
+            y={0}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={radius * 1.05}
+            style={{ userSelect: 'none' }}
+          >
+            {player.emoji}
+          </text>
+        ) : (
+          <text
+            x={0}
+            y={0}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={radius * 0.92}
+            fontWeight={800}
+            fill="#ffffff"
+            stroke={player.color}
+            strokeWidth={radius * 0.04}
+            paintOrder="stroke"
+            style={{ userSelect: 'none' }}
+          >
+            {initial}
+          </text>
+        )}
       </motion.g>
     </g>
   )
