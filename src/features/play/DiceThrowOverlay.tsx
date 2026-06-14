@@ -3,8 +3,10 @@
  * sendo "lançado". Não bloqueia toques (pointer-events-none). Aparece enquanto
  * há um arremesso ativo e some ao assentar.
  */
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Dice3D } from '../../ui/Dice3D'
+import { playSfx } from '../audio'
 import type { ThrowItem } from './useDiceThrows'
 
 interface DiceThrowOverlayProps {
@@ -13,6 +15,11 @@ interface DiceThrowOverlayProps {
 }
 
 export function DiceThrowOverlay({ active, onSettled }: DiceThrowOverlayProps) {
+  // Som de chacoalhar a cada novo arremesso (dado ou rolagem de ordem).
+  useEffect(() => {
+    if (active) playSfx('dice')
+  }, [active])
+
   return (
     <AnimatePresence>
       {active && (

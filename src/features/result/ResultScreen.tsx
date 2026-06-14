@@ -4,6 +4,7 @@ import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
 import { Confetti } from '../../ui/Confetti'
+import { playSfx } from '../audio'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
@@ -17,6 +18,7 @@ export function ResultScreen() {
   // Chuva de confete ao abrir a tela; some após alguns segundos para liberar o DOM.
   const [showConfetti, setShowConfetti] = useState(true)
   useEffect(() => {
+    playSfx('victory')
     const t = setTimeout(() => setShowConfetti(false), 6000)
     return () => clearTimeout(t)
   }, [])

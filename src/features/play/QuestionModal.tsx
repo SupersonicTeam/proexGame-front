@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { AnswerResultEvent, QuestionPromptEvent } from '../../game/types'
 import { subjectColor, subjectName } from '../board/theme'
+import { playSfx } from '../audio'
 
 interface QuestionModalProps {
   question: QuestionPromptEvent
@@ -28,12 +29,13 @@ export function QuestionModal({
   const [selected, setSelected] = useState<number | null>(null)
   const answered = lastAnswer !== null
 
-  // Fecha automaticamente após mostrar o feedback.
+  // Toca o feedback sonoro e fecha automaticamente após mostrar o resultado.
   useEffect(() => {
-    if (!answered) return
+    if (!answered || !lastAnswer) return
+    playSfx(lastAnswer.correct ? 'correct' : 'wrong')
     const t = setTimeout(onClose, FEEDBACK_MS)
     return () => clearTimeout(t)
-  }, [answered, onClose])
+  }, [answered, lastAnswer, onClose])
 
   const subjColor = subjectColor(question.subject)
 
