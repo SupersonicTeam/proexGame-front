@@ -85,14 +85,49 @@ export function Tile({
 
   return (
     <g transform={`translate(${cx} ${cy})`}>
-      {/* Brilho dourado pulsante na casa de chegada (destaque). */}
+      {/* Halo verde pulsante (duas camadas) na casa de INÍCIO. */}
+      {isStart && (
+        <>
+          <circle
+            className="finish-glow"
+            r={radius + 16}
+            fill="#4ade80"
+            style={{
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+              animationDelay: '0.5s',
+            }}
+          />
+          <circle
+            className="finish-glow"
+            r={radius + 8}
+            fill="#86efac"
+            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+          />
+          <Sparkles radius={radius} color="#bbf7d0" />
+        </>
+      )}
+      {/* Halo dourado pulsante (multi-camada) + brilhos na casa de CHEGADA. */}
       {isFinish && (
-        <circle
-          className="finish-glow"
-          r={radius + 10}
-          fill="#fbbf24"
-          style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-        />
+        <>
+          <circle
+            className="finish-glow"
+            r={radius + 18}
+            fill="#f59e0b"
+            style={{
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+              animationDelay: '0.5s',
+            }}
+          />
+          <circle
+            className="finish-glow"
+            r={radius + 10}
+            fill="#fbbf24"
+            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+          />
+          <Sparkles radius={radius} color="#fde68a" />
+        </>
       )}
 
       <motion.g
@@ -276,6 +311,44 @@ export function Tile({
           </text>
         </g>
       )}
+    </g>
+  )
+}
+
+/**
+ * Brilhos (sparkles) decorativos que cintilam ao redor de uma casa especial.
+ * Cada estrela de 4 pontas é posicionada pelo `<g>` pai e cintila (escala+opacidade)
+ * via classe CSS no próprio `<path>` (transform-box: fill-box), com atrasos
+ * escalonados para um efeito vivo.
+ */
+function Sparkles({ radius, color }: { radius: number; color: string }) {
+  const s = radius * 0.17
+  const star = (sz: number) => {
+    const q = sz * 0.34
+    return `M0 ${-sz} L ${q} ${-q} L ${sz} 0 L ${q} ${q} L 0 ${sz} L ${-q} ${q} L ${-sz} 0 L ${-q} ${-q} Z`
+  }
+  const spots = [
+    { x: -radius * 0.92, y: -radius * 0.66, d: 0, k: 1 },
+    { x: radius * 0.96, y: -radius * 0.5, d: 0.4, k: 0.8 },
+    { x: radius * 0.74, y: radius * 0.86, d: 0.85, k: 1.1 },
+    { x: -radius * 0.82, y: radius * 0.62, d: 1.15, k: 0.7 },
+  ]
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      {spots.map((p, i) => (
+        <g key={i} transform={`translate(${p.x} ${p.y})`}>
+          <path
+            className="sparkle"
+            d={star(s * p.k)}
+            fill={color}
+            style={{
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+              animationDelay: `${p.d}s`,
+            }}
+          />
+        </g>
+      ))}
     </g>
   )
 }

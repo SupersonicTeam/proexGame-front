@@ -71,6 +71,22 @@ body {
   animation: finish-flag-wave 1.1s ease-in-out infinite;
 }
 
+/* Brilhos cintilantes ao redor das casas de início/chegada. */
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    transform: scale(0.35);
+    opacity: 0.15;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+}
+.sparkle {
+  animation: sparkle-twinkle 1.6s ease-in-out infinite;
+}
+
 /* Anel pulsante do jogador da vez. */
 @keyframes turn-ring-pulse {
   0% {
