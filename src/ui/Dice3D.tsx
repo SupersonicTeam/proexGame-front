@@ -129,7 +129,6 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
                   transform: `rotateX(${t.rotX}deg) rotateY(${t.rotY}deg) translateZ(${half - 1.5}px)`,
                   backfaceVisibility: 'hidden',
                   background: '#e2e8f0',
-                  borderRadius: size * 0.04,
                 }}
               />
             )
