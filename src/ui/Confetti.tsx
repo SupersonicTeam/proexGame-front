@@ -44,6 +44,7 @@ function mulberry32(seed: number): () => number {
 export function Confetti({ count = 130 }: ConfettiProps) {
   const reduced = reducedMotion()
   const pieces = useMemo(() => {
+    if (reduced) return []
     const rng = mulberry32(0x9e3779b9 ^ count)
     return Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -56,7 +57,7 @@ export function Confetti({ count = 130 }: ConfettiProps) {
       color: COLORS[i % COLORS.length],
       round: rng() > 0.5,
     }))
-  }, [count])
+  }, [count, reduced])
 
   if (reduced) return null
 
