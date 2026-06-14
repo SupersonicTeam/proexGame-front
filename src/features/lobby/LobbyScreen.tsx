@@ -168,8 +168,10 @@ function PawnCustomizer({
                 type="button"
                 onClick={() => setColor(color === c ? '' : c)}
                 aria-label={`Cor ${c}`}
+                aria-pressed={effective === c}
                 className={
-                  'h-7 w-7 rounded-full ring-2 transition ' +
+                  'h-7 w-7 rounded-full outline-none ring-2 transition ' +
+                  'focus-visible:ring-4 focus-visible:ring-brand ' +
                   (effective === c
                     ? 'scale-110 ring-slate-800'
                     : 'ring-white hover:scale-105')
@@ -185,8 +187,10 @@ function PawnCustomizer({
                 type="button"
                 onClick={() => setEmoji(e)}
                 aria-label={`Emoji ${e}`}
+                aria-pressed={emoji === e}
                 className={
-                  'flex h-7 w-7 items-center justify-center rounded-lg text-base transition ' +
+                  'flex h-7 w-7 items-center justify-center rounded-lg text-base outline-none transition ' +
+                  'focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 ' +
                   (emoji === e
                     ? 'bg-brand/20 ring-2 ring-brand'
                     : 'hover:bg-slate-200')
