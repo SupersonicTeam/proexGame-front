@@ -71,6 +71,8 @@ interface RawLobbyState {
   code: string
   status: string
   hostId: string
+  /** S3+: dificuldade no lobby (importante p/ quem entra via joinSession). */
+  difficulty?: Difficulty
   players: RawPlayerView[]
 }
 interface RawBoard {
@@ -284,6 +286,9 @@ export class SocketGameClient implements GameClient {
           this.session.turnOrder = raw.turnOrder
           this.session.currentTurnIndex = 0
           this.session.ordering = null
+          // Persiste para sobreviver a refresh: o gameState do resync NÃO traz
+          // turnOrder, então sem isto a UI ficaria "sem turno" após reconexão.
+          this.saveTurnOrder(this.session.code, raw.turnOrder)
         }
         this.emitter.emit('orderResult', {
           rolls: raw.rolls,
@@ -404,6 +409,8 @@ export class SocketGameClient implements GameClient {
   private applyLobby(raw: RawLobbyState): void {
     if (!this.session) this.session = this.blankSession(raw.code, 'normal')
     this.session.code = raw.code
+    // S3+: o lobby carrega a dificuldade — corrige quem entrou via joinSession.
+    if (raw.difficulty) this.session.difficulty = raw.difficulty
     this.session.status = raw.status as SessionStatus
     const previous = new Map(this.session.players.map((p) => [p.id, p]))
     this.session.players = raw.players.map((pv) => {
@@ -451,10 +458,32 @@ export class SocketGameClient implements GameClient {
         }
       : null
     s.winner = raw.winner
-    // `turnOrder` vem do `orderResult`; aqui só posicionamos o turno atual.
+    // O gameState do resync NÃO traz turnOrder; restaura o persistido para a UI
+    // conseguir resolver o turno atual a partir de currentTurnPlayerId (reconexão).
+    if (s.turnOrder.length === 0) {
+      s.turnOrder = this.loadTurnOrder(raw.code)
+    }
     if (raw.currentTurnPlayerId) {
       const idx = s.turnOrder.indexOf(raw.currentTurnPlayerId)
       if (idx >= 0) s.currentTurnIndex = idx
+    }
+  }
+
+  /* turnOrder sobrevive a refresh: o gameState do resync não o reenvia. */
+  private saveTurnOrder(code: string, turnOrder: string[]): void {
+    try {
+      localStorage.setItem(`tds-turnorder-${code}`, JSON.stringify(turnOrder))
+    } catch {
+      /* localStorage indisponível: ignora (resync pode falhar em achar o turno). */
+    }
+  }
+
+  private loadTurnOrder(code: string): string[] {
+    try {
+      const raw = JSON.parse(localStorage.getItem(`tds-turnorder-${code}`) ?? '[]')
+      return Array.isArray(raw) ? raw : []
+    } catch {
+      return []
     }
   }
 

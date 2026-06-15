@@ -285,7 +285,7 @@ function OrderPanel({
             >
               <span className="font-semibold text-slate-700">{nameOf(id)}</span>
               <span className={done ? 'font-black text-brand' : 'text-slate-400'}>
-                {done ? valueOf(id) : 'rolando…'}
+                {done ? (valueOf(id) ?? '✓') : 'rolando…'}
               </span>
             </li>
           )
