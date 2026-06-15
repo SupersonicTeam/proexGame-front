@@ -5,7 +5,9 @@ import type {
   DiceResultEvent,
   GameOverEvent,
   JoinSessionInput,
+  OrderingState,
   OrderResultEvent,
+  OrderRollEvent,
   Player,
   QuestionPromptEvent,
   RankingEntry,
@@ -37,6 +39,9 @@ export interface GameStoreState {
   phase: Phase
   lastDice: DiceResultEvent | null
   order: OrderResultEvent | null
+  /* fase de ordem interativa (S4): substado + rolagens da rodada atual */
+  ordering: OrderingState | null
+  orderRolls: OrderRollEvent[]
   winner: RankingEntry | null
   ranking: RankingEntry[]
   error: string | null
@@ -59,17 +64,22 @@ export interface GameStoreState {
 }
 
 /**
- * Deriva a fase a partir de `status` da sessão + ordem já resolvida.
- * `playing` antes de a ordem ser resolvida é tratado como `order`.
+ * Deriva a fase exibível diretamente do `status` da sessão (S4). O backend (e o
+ * mock) são autoritativos sobre o `status`: `ordering` → tela de ordem; demais
+ * mapeiam 1:1. Sem heurística de "ordem resolvida".
  */
-function derivePhase(
-  session: SessionState | null,
-  orderResolved: boolean,
-): Phase {
+function derivePhase(session: SessionState | null): Phase {
   if (!session) return 'idle'
-  if (session.status === 'lobby') return 'lobby'
-  if (session.status === 'finished') return 'finished'
-  return orderResolved ? 'playing' : 'order'
+  switch (session.status) {
+    case 'lobby':
+      return 'lobby'
+    case 'ordering':
+      return 'order'
+    case 'finished':
+      return 'finished'
+    default:
+      return 'playing'
+  }
 }
 
 /** Opções de criação do client repassadas à factory (ex.: botCount). */
@@ -105,6 +115,8 @@ const initialState = {
   phase: 'idle' as Phase,
   lastDice: null,
   order: null,
+  ordering: null,
+  orderRolls: [] as OrderRollEvent[],
   winner: null,
   ranking: [] as RankingEntry[],
   error: null,
@@ -123,44 +135,66 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     set({
       myPlayerId: playerId,
       session,
-      phase: derivePhase(session, false),
+      phase: derivePhase(session),
       error: null,
     })
   })
 
   client.on('lobbyState', ({ session }) => {
-    set({ session, phase: derivePhase(session, false) })
+    set({ session, phase: derivePhase(session) })
   })
 
   client.on('playerJoined', ({ session }) => {
-    set({ session, phase: derivePhase(session, false) })
+    set({ session, phase: derivePhase(session) })
   })
 
   client.on('gameStarted', ({ session }) => {
     set({
       session,
-      phase: derivePhase(session, false),
+      phase: derivePhase(session),
       order: null,
+      ordering: null,
+      orderRolls: [],
       question: null,
       lastAnswer: null,
       turnSkipped: null,
     })
   })
 
+  // Snapshot canônico (S4): resync/reconexão e transições de status.
+  client.on('gameState', ({ session }) => {
+    set({ session, phase: derivePhase(session), ordering: session.ordering })
+  })
+
+  // Início de uma rodada de ordem (S4): zera as rolagens da rodada.
+  client.on('orderPhase', ({ round, playersToRoll }) => {
+    set({
+      ordering: { round, playersToRoll, rolled: [] },
+      orderRolls: [],
+      phase: 'order',
+    })
+  })
+
+  // Rolagem individual de ordem (S4): acumula valor + marca quem já rolou.
+  client.on('orderRoll', (roll) => {
+    const cur = get().ordering
+    set({
+      orderRolls: [...get().orderRolls, roll],
+      ordering: cur ? { ...cur, rolled: [...cur.rolled, roll.playerId] } : cur,
+    })
+  })
+
   client.on('orderResult', (order) => {
-    // Quando a ordem é resolvida (turnOrder definido), entra direto em 'playing'
-    // de forma determinística — sem depender da chegada de turnChanged nem da
-    // corrida com gameStarted, que às vezes deixava o passo de ordem piscar ou
-    // ser pulado de forma inconsistente. Empate (turnOrder null) mantém a fase.
-    const session = get().session
-    set(order.turnOrder ? { order, phase: derivePhase(session, true) } : { order })
+    // Ordem resolvida: guarda o resultado e encerra o substado de ordem. A
+    // transição para 'playing' vem do gameState/turnChanged subsequentes.
+    set({ order, ordering: null })
   })
 
   client.on('turnChanged', ({ session }) => {
     // Ao trocar de turno, qualquer pergunta/aviso pendente é descartado.
     set({
       session,
-      phase: derivePhase(session, true),
+      phase: derivePhase(session),
       question: null,
       turnSkipped: null,
     })

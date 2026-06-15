@@ -8,7 +8,18 @@
 
 export type Difficulty = 'easy' | 'normal' | 'hard'
 
-export type SessionStatus = 'lobby' | 'playing' | 'finished'
+/** `ordering` (S4) = fase interativa de definição de ordem (RF-04). */
+export type SessionStatus = 'lobby' | 'ordering' | 'playing' | 'finished'
+
+/**
+ * Substado da fase de ordem (S4). `playersToRoll` = quem ainda rola nesta
+ * rodada; `rolled` = quem já rolou (esconde o botão, útil pós-reconexão).
+ */
+export interface OrderingState {
+  round: number
+  playersToRoll: string[]
+  rolled: string[]
+}
 
 /** 10 matérias escolares (RF-09). */
 export type Subject =
@@ -80,6 +91,8 @@ export interface SessionState {
   players: Player[]
   turnOrder: string[]
   currentTurnIndex: number
+  /** Substado da fase de ordem (S4); `null` fora de `status: 'ordering'`. */
+  ordering: OrderingState | null
   winner: string | null
   createdAt: number
   lastActivityAt: number
@@ -136,12 +149,29 @@ export interface OrderRollEntry {
   playerId: string
   value: number
 }
+/** Início de uma rodada de ordem (S4): quem deve rolar agora. */
+export interface OrderPhaseEvent {
+  round: number
+  playersToRoll: string[]
+}
+/** Rolagem individual de ordem (S4) — para animar o dado de cada jogador. */
+export interface OrderRollEvent {
+  playerId: string
+  value: number
+  round: number
+}
+/** Ordem totalmente resolvida (S4). `rounds` inclui os desempates. */
 export interface OrderResultEvent {
+  /** 1ª rodada (compat). */
   rolls: OrderRollEntry[]
-  /** Jogadores ainda empatados que precisam re-rolar (RF-04). */
-  tiedPlayerIds: string[]
-  /** Definido quando a ordem foi resolvida. */
-  turnOrder: string[] | null
+  /** Todas as rodadas, em ordem (inclui desempates). */
+  rounds: OrderRollEntry[][]
+  /** Ordem final dos turnos. */
+  turnOrder: string[]
+}
+/** Snapshot canônico da sessão (S4): (re)render total + resync/reconexão. */
+export interface GameStateEvent {
+  session: SessionState
 }
 export interface TurnChangedEvent {
   playerId: string
@@ -217,6 +247,9 @@ export interface GameEventMap {
   playerJoined: PlayerJoinedEvent
   lobbyState: LobbyStateEvent
   gameStarted: GameStartedEvent
+  gameState: GameStateEvent
+  orderPhase: OrderPhaseEvent
+  orderRoll: OrderRollEvent
   orderResult: OrderResultEvent
   turnChanged: TurnChangedEvent
   diceResult: DiceResultEvent
