@@ -4,6 +4,7 @@ import type {
   GameEventHandler,
   GameEventName,
   JoinSessionInput,
+  OrderRollEntry,
   Player,
   RankingEntry,
   ReconnectInput,
@@ -25,7 +26,6 @@ import {
   generateSessionCode,
   retreatForError,
   rollD6,
-  rollForOrder,
   selectQuestion,
 } from '../engine'
 import { allQuestions } from '../../data/questions'
@@ -42,6 +42,10 @@ const BOT_CORRECT_PROB = 0.6
 const ANSWER_RESOLVE_DELAY_MS = 1500
 /** Atraso ao pular o turno de quem está preso (mostra o aviso). */
 const SKIP_DELAY_MS = 1500
+/** Escalonamento entre as rolagens de ordem dos bots (S4). */
+const ORDER_BOT_STAGGER_MS = 1100
+/** Atraso antes de resolver a rodada de ordem após a última rolagem (S4). */
+const ORDER_RESOLVE_DELAY_MS = 500
 
 /** Pergunta pendente aguardando resposta. */
 interface PendingQuestion {
@@ -101,6 +105,13 @@ export class MockGameClient implements GameClient {
    */
   private currentTier: Tier = 'leader'
 
+  /* --- fase de ordem interativa (S4, RF-04) --- */
+  private orderRound = 0
+  private orderContenders: string[] = []
+  private orderRolled: OrderRollEntry[] = []
+  private orderTail: string[] = []
+  private orderRounds: OrderRollEntry[][] = []
+
   constructor(options: MockGameClientOptions = {}) {
     this.rng = options.rng ?? Math.random
     this.botCount = options.botCount ?? 2
@@ -143,6 +154,7 @@ export class MockGameClient implements GameClient {
       players,
       turnOrder: [],
       currentTurnIndex: 0,
+      ordering: null,
       winner: null,
       createdAt: now,
       lastActivityAt: now,
@@ -152,6 +164,11 @@ export class MockGameClient implements GameClient {
     this.phase = 'lobby'
     this.usedQuestionIds = new Set()
     this.pendingQuestion = null
+    this.orderRound = 0
+    this.orderContenders = []
+    this.orderRolled = []
+    this.orderTail = []
+    this.orderRounds = []
 
     this.emitter.emit('sessionCreated', {
       code,
@@ -197,22 +214,42 @@ export class MockGameClient implements GameClient {
       this.fail('NOT_ENOUGH_PLAYERS', 'São necessários ao menos 2 jogadores.')
       return
     }
-    this.session.status = 'playing'
+    // S4 (RF-04): a partida entra na fase de ORDEM interativa, não direto em play.
+    this.session.status = 'ordering'
     this.phase = 'order'
+    this.orderTail = []
+    this.orderRounds = []
     this.touch()
 
     this.emitter.emit('gameStarted', {
       board: this.session.board,
       session: this.snapshot(),
     })
+    // gameStarted → gameState{ordering} → orderPhase{round 1, todos}.
+    this.beginOrderRound(
+      this.session.players.map((p) => p.id),
+      1,
+    )
   }
 
+  /**
+   * Rolagem de ordem do JOGADOR LOCAL (S4). Só vale se ele está no grupo que
+   * rola nesta rodada e ainda não rolou. Bots rolam sozinhos (escalonados).
+   */
   rollForOrder(): void {
     if (!this.session || this.phase !== 'order') {
-      this.fail('BAD_PHASE', 'Rolagem de ordem fora de fase.')
+      this.fail('ORDER_NOT_ACTIVE', 'Rolagem de ordem fora de fase.')
       return
     }
-    this.resolveOrderRound(this.session.players.map((p) => p.id))
+    if (!this.myPlayerId || !this.orderContenders.includes(this.myPlayerId)) {
+      this.fail('NOT_ROLLING_FOR_ORDER', 'Você não está no grupo que rola agora.')
+      return
+    }
+    if (this.orderRolled.some((r) => r.playerId === this.myPlayerId)) {
+      this.fail('ALREADY_ROLLED_FOR_ORDER', 'Você já rolou nesta rodada.')
+      return
+    }
+    this.doOrderRoll(this.myPlayerId)
   }
 
   rollDice(): void {
@@ -264,12 +301,16 @@ export class MockGameClient implements GameClient {
     if (this.phase === 'lobby') {
       this.emitLobby()
     } else {
-      const player = this.currentPlayer()
-      if (player) {
-        this.emitter.emit('turnChanged', {
-          playerId: player.id,
-          session: this.snapshot(),
-        })
+      // Resync canônico (S4): o gameState carrega status/ordering/posições.
+      this.emitter.emit('gameState', { session: this.snapshot() })
+      if (this.phase === 'playing') {
+        const player = this.currentPlayer()
+        if (player) {
+          this.emitter.emit('turnChanged', {
+            playerId: player.id,
+            session: this.snapshot(),
+          })
+        }
       }
     }
   }
@@ -289,28 +330,103 @@ export class MockGameClient implements GameClient {
   /* Loop interno                                                       */
   /* ------------------------------------------------------------------ */
 
-  /** Resolve uma rodada de ordem entre `contenders`, automatizando bots. */
-  private resolveOrderRound(contenders: string[]): void {
+  /** Inicia uma rodada de ordem (S4): emite gameState + orderPhase e agenda bots. */
+  private beginOrderRound(contenders: string[], round: number): void {
     if (!this.session) return
-    const result = rollForOrder(contenders, this.rng)
+    this.orderRound = round
+    this.orderContenders = contenders
+    this.orderRolled = []
+    this.session.ordering = { round, playersToRoll: [...contenders], rolled: [] }
+    this.touch()
+    this.emitter.emit('gameState', { session: this.snapshot() })
+    this.emitter.emit('orderPhase', { round, playersToRoll: [...contenders] })
+    this.scheduleBotOrderRolls()
+  }
 
-    this.emitter.emit('orderResult', {
-      rolls: result.rolls,
-      tiedPlayerIds: result.tiedPlayerIds,
-      turnOrder: result.turnOrder,
+  /** Agenda as rolagens dos bots do grupo atual, escalonadas. */
+  private scheduleBotOrderRolls(): void {
+    const bots = this.orderContenders.filter((id) => this.botIds.has(id))
+    bots.forEach((id, i) => {
+      this.scheduleAfter(ORDER_BOT_STAGGER_MS * (i + 1), () => {
+        if (
+          this.phase === 'order' &&
+          this.orderContenders.includes(id) &&
+          !this.orderRolled.some((r) => r.playerId === id)
+        ) {
+          this.doOrderRoll(id)
+        }
+      })
     })
+  }
 
-    if (result.turnOrder) {
-      this.session.turnOrder = result.turnOrder
-      this.session.currentTurnIndex = 0
-      this.phase = 'playing'
-      this.touch()
-      this.announceTurn()
+  /** Executa a rolagem de ordem de um jogador e, se a rodada fechou, resolve. */
+  private doOrderRoll(playerId: string): void {
+    if (!this.session || this.phase !== 'order') return
+    if (!this.orderContenders.includes(playerId)) return
+    if (this.orderRolled.some((r) => r.playerId === playerId)) return
+
+    const value = rollD6(this.rng)
+    this.orderRolled.push({ playerId, value })
+    if (this.session.ordering) {
+      this.session.ordering = {
+        ...this.session.ordering,
+        rolled: [...this.session.ordering.rolled, playerId],
+      }
+    }
+    this.touch()
+    this.emitter.emit('orderRoll', { playerId, value, round: this.orderRound })
+
+    if (this.orderRolled.length === this.orderContenders.length) {
+      this.scheduleAfter(ORDER_RESOLVE_DELAY_MS, () => this.finishOrderRound())
+    }
+  }
+
+  /**
+   * Fecha a rodada de ordem: empate no topo re-rola só os empatados (não-tied
+   * vão para o tail); senão resolve o turnOrder e entra em 'playing' (S4).
+   */
+  private finishOrderRound(): void {
+    if (!this.session) return
+    const rolls = [...this.orderRolled]
+    this.orderRounds.push(rolls)
+
+    const maxValue = Math.max(...rolls.map((r) => r.value))
+    const tied = rolls.filter((r) => r.value === maxValue)
+
+    if (tied.length > 1) {
+      const tiedSet = new Set(tied.map((r) => r.playerId))
+      const losers = rolls
+        .filter((r) => !tiedSet.has(r.playerId))
+        .sort((a, b) => b.value - a.value)
+        .map((r) => r.playerId)
+      this.orderTail = [...losers, ...this.orderTail]
+      this.beginOrderRound(
+        tied.map((r) => r.playerId),
+        this.orderRound + 1,
+      )
       return
     }
 
-    // Empate no topo: re-rola automaticamente apenas entre os empatados.
-    this.schedule(() => this.resolveOrderRound(result.tiedPlayerIds))
+    // Resolvido: ordena os contendores desta rodada (desc) + cauda já fixada.
+    const topOrder = [...rolls]
+      .sort((a, b) => b.value - a.value)
+      .map((r) => r.playerId)
+    const turnOrder = [...topOrder, ...this.orderTail]
+
+    this.session.turnOrder = turnOrder
+    this.session.currentTurnIndex = 0
+    this.session.status = 'playing'
+    this.session.ordering = null
+    this.phase = 'playing'
+    this.touch()
+
+    this.emitter.emit('orderResult', {
+      rolls: this.orderRounds[0],
+      rounds: this.orderRounds,
+      turnOrder,
+    })
+    this.emitter.emit('gameState', { session: this.snapshot() })
+    this.announceTurn()
   }
 
   /** Executa a rolagem de dado e o movimento de `playerId`. */
