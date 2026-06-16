@@ -11,7 +11,9 @@ import { Dice3D } from '../../ui/Dice3D'
 import { colorForIndex, tierMeta, toPlayerViews } from './playerViews'
 import { computeTiers } from '../../game/engine'
 import { usePlayerCustomization } from '../lobby/usePlayerCustomization'
+import type { SpectatorNote } from '../../game/store/gameStore'
 import type { OrderingState, OrderRollEvent } from '../../game/types'
+import { subjectName } from '../board/theme'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
 import { QuestionModal } from './QuestionModal'
@@ -29,6 +31,7 @@ export function PlayScreen() {
   const question = useGameStore((s) => s.question)
   const lastAnswer = useGameStore((s) => s.lastAnswer)
   const turnSkipped = useGameStore((s) => s.turnSkipped)
+  const spectatorNote = useGameStore((s) => s.spectatorNote)
   const submitAnswer = useGameStore((s) => s.submitAnswer)
   const clearQuestion = useGameStore((s) => s.clearQuestion)
   const clearTurnSkipped = useGameStore((s) => s.clearTurnSkipped)
@@ -241,8 +244,44 @@ export function PlayScreen() {
           </div>
         </div>
       )}
+
+      {/* Aviso de espectador: outro jogador respondendo / resultado (item 6). */}
+      {spectatorNote && !turnSkipped && (
+        <div className="pointer-events-none fixed inset-x-0 top-6 z-30 flex justify-center px-4">
+          <div
+            className={
+              'rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl ' +
+              (spectatorNote.kind === 'correct'
+                ? 'bg-emerald-600'
+                : spectatorNote.kind === 'wrong'
+                  ? 'bg-rose-600'
+                  : 'bg-slate-800')
+            }
+          >
+            {spectatorText(spectatorNote)}
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+/** Texto do aviso de espectador (item 6) conforme a fase do outro jogador. */
+function spectatorText(note: SpectatorNote): string {
+  if (note.kind === 'answering') {
+    return note.subject
+      ? `🤔 ${note.name} está respondendo uma pergunta de ${subjectName(note.subject)}…`
+      : `🤔 ${note.name} está respondendo…`
+  }
+  const steps = Math.abs(note.movement)
+  if (note.kind === 'correct') {
+    return steps > 0
+      ? `✅ ${note.name} acertou! Avançou ${steps} casa(s)`
+      : `✅ ${note.name} acertou!`
+  }
+  return steps > 0
+    ? `❌ ${note.name} errou! Voltou ${steps} casa(s)`
+    : `❌ ${note.name} errou.`
 }
 
 function OrderPanel({
