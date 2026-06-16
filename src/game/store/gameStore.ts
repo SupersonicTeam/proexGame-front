@@ -12,7 +12,6 @@ import type {
   QuestionPromptEvent,
   RankingEntry,
   SessionState,
-  Subject,
   SubmitAnswerInput,
   TurnSkippedEvent,
 } from '../types'
@@ -33,20 +32,6 @@ import type { GameClient, MockGameClientOptions } from '../client'
 /** Fase derivada exibível pela UI. */
 type Phase = 'idle' | 'lobby' | 'order' | 'playing' | 'finished'
 
-/**
- * Aviso de espectador (item 6, front-only): o que mostrar enquanto OUTRO jogador
- * responde uma pergunta. Não revela o enunciado/alternativas (que só vão ao autor),
- * só quem está respondendo e o resultado. Derivado de eventos de sala (broadcast).
- */
-export interface SpectatorNote {
-  playerId: string
-  name: string
-  kind: 'answering' | 'correct' | 'wrong'
-  subject: Subject | null
-  /** Casas movidas no resultado (positivo = avanço, negativo = recuo). */
-  movement: number
-}
-
 export interface GameStoreState {
   /* estado reativo */
   session: SessionState | null
@@ -64,8 +49,6 @@ export interface GameStoreState {
   question: QuestionPromptEvent | null
   lastAnswer: AnswerResultEvent | null
   turnSkipped: TurnSkippedEvent | null
-  /* aviso de espectador (outro jogador respondendo) */
-  spectatorNote: SpectatorNote | null
 
   /* ações (componente → client) */
   createSession: (input: CreateSessionInput) => void
@@ -77,7 +60,6 @@ export interface GameStoreState {
   leaveSession: () => void
   clearQuestion: () => void
   clearTurnSkipped: () => void
-  clearSpectatorNote: () => void
   reset: () => void
 }
 
@@ -127,10 +109,6 @@ export function getGameClient(): GameClient {
 const FINISH_DELAY_MS = 3500
 let finishTimer: ReturnType<typeof setTimeout> | null = null
 
-/** Tempo que o resultado do espectador (acertou/errou) fica na tela. */
-const SPECTATOR_RESULT_MS = 2800
-let spectatorTimer: ReturnType<typeof setTimeout> | null = null
-
 const initialState = {
   session: null,
   myPlayerId: null,
@@ -145,7 +123,6 @@ const initialState = {
   question: null,
   lastAnswer: null,
   turnSkipped: null,
-  spectatorNote: null,
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => {
@@ -215,16 +192,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   client.on('turnChanged', ({ session }) => {
     // Ao trocar de turno, qualquer pergunta/aviso pendente é descartado.
-    if (spectatorTimer) {
-      clearTimeout(spectatorTimer)
-      spectatorTimer = null
-    }
     set({
       session,
       phase: derivePhase(session),
       question: null,
       turnSkipped: null,
-      spectatorNote: null,
     })
   })
 
@@ -245,27 +217,6 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     } else {
       set({ lastAnswer })
     }
-
-    // Espectador (item 6): resultado de OUTRO jogador (acertou/errou + casas).
-    if (lastAnswer.playerId !== get().myPlayerId) {
-      const who = get().session?.players.find(
-        (x) => x.id === lastAnswer.playerId,
-      )
-      set({
-        spectatorNote: {
-          playerId: lastAnswer.playerId,
-          name: who?.name ?? 'Jogador',
-          kind: lastAnswer.correct ? 'correct' : 'wrong',
-          subject: null,
-          movement: lastAnswer.movement,
-        },
-      })
-      if (spectatorTimer) clearTimeout(spectatorTimer)
-      spectatorTimer = setTimeout(
-        () => set({ spectatorNote: null }),
-        SPECTATOR_RESULT_MS,
-      )
-    }
   })
 
   client.on('turnSkipped', (turnSkipped) => {
@@ -275,35 +226,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   client.on('diceResult', (lastDice) => {
     // Atualiza a casa do jogador na cópia local do estado para a UI animar.
     const session = get().session
-    if (!session) {
+    if (session) {
+      const players: Player[] = session.players.map((p) =>
+        p.id === lastDice.playerId ? { ...p, square: lastDice.toSquare } : p,
+      )
+      set({ lastDice, session: { ...session, players } })
+    } else {
       set({ lastDice })
-      return
-    }
-    const players: Player[] = session.players.map((p) =>
-      p.id === lastDice.playerId ? { ...p, square: lastDice.toSquare } : p,
-    )
-    set({ lastDice, session: { ...session, players } })
-
-    // Espectador (item 6): OUTRO jogador caiu numa casa-pergunta → vai responder.
-    const board = session.board
-    const onQuestion =
-      board.tileTypeBySquare[lastDice.toSquare] === 'question' ||
-      board.questionSquares.includes(lastDice.toSquare)
-    if (lastDice.playerId !== get().myPlayerId && onQuestion) {
-      if (spectatorTimer) {
-        clearTimeout(spectatorTimer)
-        spectatorTimer = null
-      }
-      const who = session.players.find((x) => x.id === lastDice.playerId)
-      set({
-        spectatorNote: {
-          playerId: lastDice.playerId,
-          name: who?.name ?? 'Jogador',
-          kind: 'answering',
-          subject: board.subjectBySquare[lastDice.toSquare] ?? null,
-          movement: 0,
-        },
-      })
     }
   })
 
@@ -344,21 +273,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     leaveSession: () => client.leaveSession(),
     clearQuestion: () => set({ question: null, lastAnswer: null }),
     clearTurnSkipped: () => set({ turnSkipped: null }),
-    clearSpectatorNote: () => {
-      if (spectatorTimer) {
-        clearTimeout(spectatorTimer)
-        spectatorTimer = null
-      }
-      set({ spectatorNote: null })
-    },
     reset: () => {
       if (finishTimer) {
         clearTimeout(finishTimer)
         finishTimer = null
-      }
-      if (spectatorTimer) {
-        clearTimeout(spectatorTimer)
-        spectatorTimer = null
       }
       set({ ...initialState })
     },
