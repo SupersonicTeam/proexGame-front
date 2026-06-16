@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import {
   useCurrentTurnPlayer,
   useGameStore,
@@ -12,11 +13,13 @@ import { colorForIndex, tierMeta, toPlayerViews } from './playerViews'
 import { computeTiers } from '../../game/engine'
 import { usePlayerCustomization } from '../lobby/usePlayerCustomization'
 import type { SpectatorNote } from '../../game/store/gameStore'
-import type { OrderingState, OrderRollEvent } from '../../game/types'
+import type { OrderingState, OrderRollEvent, Player } from '../../game/types'
 import { subjectName } from '../board/theme'
+import { playSfx } from '../audio'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
 import { QuestionModal } from './QuestionModal'
+import { PrisonAnnouncement, PrisonHeldOverlay } from './PrisonOverlay'
 
 /** Tela de jogo: tabuleiro + HUD de turno. Cobre as fases 'order' e 'playing'. */
 export function PlayScreen() {
@@ -42,8 +45,13 @@ export function PlayScreen() {
   const pawnColor = usePlayerCustomization((s) => s.color)
   const pawnEmoji = usePlayerCustomization((s) => s.emoji)
 
-  const { activeThrow, visualSquares, isThrowing, onThrowSettled } =
-    useDiceThrows()
+  const {
+    activeThrow,
+    visualSquares,
+    isThrowing,
+    onThrowSettled,
+    prisonAlert,
+  } = useDiceThrows()
 
   // Some o aviso de "preso" sozinho.
   useEffect(() => {
@@ -52,33 +60,56 @@ export function PlayScreen() {
     return () => clearTimeout(t)
   }, [turnSkipped, clearTurnSkipped])
 
-  // Posições VISUAIS: o peão só anda depois que o dado assenta (visualSquares),
-  // por isso usamos elas no lugar de `session.players.square`.
+  // PRISÃO (item front-only): o anúncio "Fulano foi preso!" aparece SÓ quando o
+  // dado assenta (prisonAlert vem da camada de playback) e some sozinho. Tanto o
+  // anúncio quanto a tela de grades são DERIVADOS (sem setState em efeito).
+  const [dismissedPrisonId, setDismissedPrisonId] = useState(0)
+  useEffect(() => {
+    if (!prisonAlert || prisonAlert.id === dismissedPrisonId) return
+    playSfx('prison')
+    const t = setTimeout(() => setDismissedPrisonId(prisonAlert.id), 2600)
+    return () => clearTimeout(t)
+  }, [prisonAlert, dismissedPrisonId])
+
+  const prisonBanner =
+    prisonAlert && prisonAlert.id !== dismissedPrisonId ? prisonAlert : null
+
+  // Tela de grades do jogador local: preso (skipTurns > 0) e com o dado já
+  // assentado (!isThrowing) — assim não acende durante a própria rolagem nem
+  // vaza antes do peão chegar à cela. Some quando ele é solto (perde a vez).
+  const selfJailed = (me?.skipTurns ?? 0) > 0 && !isThrowing
+
+  // Posições VISUAIS: o peão (e tudo que dele depende) só avança depois que o
+  // dado assenta (visualSquares). Usadas no lugar de `session.players.square`
+  // para NADA — peão, placar nem tiers — revelar o resultado antes do dado parar.
+  const visualPlayers = useMemo<Player[]>(
+    () =>
+      session
+        ? session.players.map((p) => ({
+            ...p,
+            square: visualSquares[p.id] ?? p.square,
+          }))
+        : [],
+    [session, visualSquares],
+  )
+
   const playerViews = useMemo(
     () =>
       session
-        ? toPlayerViews(
-            session.players.map((p) => ({
-              ...p,
-              square: visualSquares[p.id] ?? p.square,
-            })),
-            myPlayerId,
-            { color: pawnColor, emoji: pawnEmoji },
-          )
+        ? toPlayerViews(visualPlayers, myPlayerId, {
+            color: pawnColor,
+            emoji: pawnEmoji,
+          })
         : [],
-    [session, myPlayerId, visualSquares, pawnColor, pawnEmoji],
+    [session, visualPlayers, myPlayerId, pawnColor, pawnEmoji],
   )
 
-  // Tiers de catch-up (§3): recalculados pelas posições atuais de jogo, então
-  // mudam a cada turno. Derivados (display puro) — não precisam de autoridade.
+  // Tiers de catch-up (§3): recalculados pelas posições atuais, então mudam a
+  // cada turno. Derivados das posições VISUAIS para acompanhar o dado (sem leak).
   const tiers = useMemo(
     () =>
-      session
-        ? computeTiers(
-            session.players.map((p) => ({ id: p.id, square: p.square })),
-          )
-        : {},
-    [session],
+      computeTiers(visualPlayers.map((p) => ({ id: p.id, square: p.square }))),
+    [visualPlayers],
   )
 
   if (!session) return null
@@ -133,9 +164,7 @@ export function PlayScreen() {
               !ordering.rolled.includes(myPlayerId)
             }
             alreadyRolled={
-              !!ordering &&
-              !!myPlayerId &&
-              ordering.rolled.includes(myPlayerId)
+              !!ordering && !!myPlayerId && ordering.rolled.includes(myPlayerId)
             }
             isThrowing={isThrowing}
             onRoll={rollForOrder}
@@ -177,7 +206,7 @@ export function PlayScreen() {
         <section>
           <p className="mb-2 text-sm font-semibold text-slate-700">Posições</p>
           <ul className="space-y-2">
-            {standings(session.players).map(({ player }) => (
+            {standings(visualPlayers).map(({ player }) => (
               <li
                 key={player.id}
                 className={
@@ -219,6 +248,23 @@ export function PlayScreen() {
       </aside>
 
       <DiceThrowOverlay active={activeThrow} onSettled={onThrowSettled} />
+
+      {/* PRISÃO: tela de grades do jogador local enquanto aguarda ser solto. */}
+      {selfJailed && <PrisonHeldOverlay />}
+
+      {/* PRISÃO: anúncio "Fulano foi preso!" para todos (grades caindo). */}
+      <AnimatePresence>
+        {prisonBanner && (
+          <PrisonAnnouncement
+            key={prisonBanner.id}
+            isSelf={prisonBanner.playerId === myPlayerId}
+            name={
+              session.players.find((p) => p.id === prisonBanner.playerId)
+                ?.name ?? 'Jogador'
+            }
+          />
+        )}
+      </AnimatePresence>
 
       {/* Pergunta do jogador local — só após o dado/peão assentarem. */}
       {question && !isThrowing && (
@@ -323,7 +369,9 @@ function OrderPanel({
               className="flex justify-between rounded-lg bg-white px-3 py-1.5"
             >
               <span className="font-semibold text-slate-700">{nameOf(id)}</span>
-              <span className={done ? 'font-black text-brand' : 'text-slate-400'}>
+              <span
+                className={done ? 'font-black text-brand' : 'text-slate-400'}
+              >
                 {done ? (valueOf(id) ?? '✓') : 'rolando…'}
               </span>
             </li>

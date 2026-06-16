@@ -5,13 +5,13 @@
  *
  *  - Ambiente: progressão lenta de acordes suaves em loop (clima tranquilo).
  *  - SFX: dado (chacoalhar), acerto (sino ascendente), erro (zumbido grave),
- *    vitória (arpejo).
+ *    prisão (grade metálica fechando + tranca), vitória (arpejo).
  *
  * Tudo roteia por um `master` gain (volume/mute). O ambiente tem um gain próprio
  * mais baixo para ficar ao fundo. Singleton exportado em `audio`.
  */
 
-export type SfxName = 'dice' | 'correct' | 'wrong' | 'victory'
+export type SfxName = 'dice' | 'correct' | 'wrong' | 'prison' | 'victory'
 
 /** Construtor do AudioContext (guardado para ambientes sem Web Audio: testes/SSR). */
 const Ctor: typeof AudioContext | undefined =
@@ -136,28 +136,40 @@ class AudioEngine {
       osc.stop(now + start + dur + 0.02)
     }
 
+    /** Estouro de ruído filtrado (chacoalhar/raspar metálico). */
+    const noise = (
+      start: number,
+      dur: number,
+      filter: BiquadFilterType,
+      freq: number,
+      q: number,
+      peak: number,
+    ): void => {
+      const len = Math.max(1, Math.floor(ctx.sampleRate * dur))
+      const buffer = ctx.createBuffer(1, len, ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let k = 0; k < len; k++) {
+        data[k] = (Math.random() * 2 - 1) * (1 - k / len)
+      }
+      const src = ctx.createBufferSource()
+      src.buffer = buffer
+      const bq = ctx.createBiquadFilter()
+      bq.type = filter
+      bq.frequency.value = freq
+      bq.Q.value = q
+      const g = ctx.createGain()
+      g.gain.value = peak
+      src.connect(bq)
+      bq.connect(g)
+      g.connect(out)
+      src.start(now + start)
+      src.stop(now + start + dur)
+    }
+
     switch (name) {
       case 'dice': {
         // Ruído curto e decrescente (chacoalhar do dado), filtrado.
-        const len = Math.floor(ctx.sampleRate * 0.25)
-        const buffer = ctx.createBuffer(1, len, ctx.sampleRate)
-        const data = buffer.getChannelData(0)
-        for (let k = 0; k < len; k++) {
-          data[k] = (Math.random() * 2 - 1) * (1 - k / len)
-        }
-        const src = ctx.createBufferSource()
-        src.buffer = buffer
-        const bp = ctx.createBiquadFilter()
-        bp.type = 'bandpass'
-        bp.frequency.value = 1200
-        bp.Q.value = 0.8
-        const g = ctx.createGain()
-        g.gain.value = 0.25
-        src.connect(bp)
-        bp.connect(g)
-        g.connect(out)
-        src.start(now)
-        src.stop(now + 0.25)
+        noise(0, 0.25, 'bandpass', 1200, 0.8, 0.25)
         break
       }
       case 'correct': {
@@ -168,6 +180,19 @@ class AudioEngine {
       case 'wrong': {
         tone(196.0, 0, 0.2, 'sawtooth', 0.22) // Sol3
         tone(146.83, 0.14, 0.32, 'sawtooth', 0.2) // Ré3 (desce)
+        break
+      }
+      case 'prison': {
+        // Portão de grade fechando: chocalho metálico das barras → batida grave
+        // da tranca. Partais inarmônicos dão o timbre de aço.
+        tone(330, 0, 0.16, 'square', 0.1) // clang
+        tone(437, 0, 0.16, 'square', 0.08) // razão ~1.32 (inarmônico)
+        tone(523, 0, 0.12, 'triangle', 0.06)
+        noise(0, 0.22, 'bandpass', 2600, 1.2, 0.16) // raspar das barras
+        // Tranca: thud grave fechando no fim do movimento.
+        tone(72, 0.2, 0.34, 'sine', 0.32)
+        tone(110, 0.2, 0.18, 'triangle', 0.16)
+        noise(0.2, 0.08, 'lowpass', 400, 0.7, 0.18) // impacto seco
         break
       }
       case 'victory': {

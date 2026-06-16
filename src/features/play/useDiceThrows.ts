@@ -6,7 +6,7 @@
  * (que o store atualiza na hora). Sem isso, o peão andaria antes do dado cair.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getGameClient } from '../../game/store/gameStore'
+import { getGameClient, useGameStore } from '../../game/store/gameStore'
 import type {
   AnswerResultEvent,
   DiceResultEvent,
@@ -20,6 +20,17 @@ export interface ThrowItem {
   value: number
   playerId?: string
   toSquare?: number
+}
+
+/**
+ * Quem acabou de cair numa casa de presídio — emitido SÓ quando o dado assenta
+ * (o peão já chegou na cela), nunca durante a rolagem. `id` único por evento
+ * para a animação remontar a cada nova prisão.
+ */
+export interface PrisonAlert {
+  id: number
+  playerId: string
+  square: number
 }
 
 /** Tempo após o dado assentar para o peão andar antes do próximo arremesso. */
@@ -38,6 +49,8 @@ export interface DiceThrowsApi {
   visualSquares: Record<string, number>
   isThrowing: boolean
   onThrowSettled: () => void
+  /** Última prisão (caiu em casa 'prison'), revelada ao dado assentar. */
+  prisonAlert: PrisonAlert | null
 }
 
 export function useDiceThrows(): DiceThrowsApi {
@@ -48,6 +61,7 @@ export function useDiceThrows(): DiceThrowsApi {
 
   const [activeThrow, setActiveThrow] = useState<ThrowItem | null>(null)
   const [visualSquares, setVisualSquares] = useState<Record<string, number>>({})
+  const [prisonAlert, setPrisonAlert] = useState<PrisonAlert | null>(null)
 
   const processNext = useCallback(() => {
     if (activeRef.current) return
@@ -71,6 +85,12 @@ export function useDiceThrows(): DiceThrowsApi {
     if (item.kind === 'move' && item.playerId && item.toSquare !== undefined) {
       const { playerId, toSquare } = item
       setVisualSquares((prev) => ({ ...prev, [playerId]: toSquare }))
+      // Prisão (RF-19: só por dado): revela ao assentar, quando o peão já está
+      // na cela — nunca durante a rolagem. O backend já incrementou `skipTurns`.
+      const board = useGameStore.getState().session?.board
+      if (board && board.tileTypeBySquare[toSquare] === 'prison') {
+        setPrisonAlert({ id: item.id, playerId, square: toSquare })
+      }
     }
     activeRef.current = null
     setActiveThrow(null)
@@ -128,6 +148,7 @@ export function useDiceThrows(): DiceThrowsApi {
       activeRef.current = null
       if (nextTimer.current) clearTimeout(nextTimer.current)
       setActiveThrow(null)
+      setPrisonAlert(null)
       setVisualSquares(
         Object.fromEntries(e.session.players.map((p) => [p.id, p.square])),
       )
@@ -152,5 +173,6 @@ export function useDiceThrows(): DiceThrowsApi {
     visualSquares,
     isThrowing: activeThrow !== null,
     onThrowSettled,
+    prisonAlert,
   }
 }
