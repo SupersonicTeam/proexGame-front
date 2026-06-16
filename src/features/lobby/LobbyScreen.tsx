@@ -3,7 +3,7 @@ import { useGameStore, useMyPlayer } from '../../game/store/gameStore'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
-import { colorForIndex } from '../play/playerViews'
+import { colorForIndex, emojiForIndex } from '../play/playerViews'
 import {
   PAWN_COLORS,
   PAWN_EMOJIS,
@@ -70,7 +70,10 @@ export function LobbyScreen() {
                 const isMe = p.id === me?.id
                 const swatchColor =
                   isMe && pawnColor ? pawnColor : colorForIndex(i)
-                const swatchEmoji = isMe ? pawnEmoji : ''
+                // Local usa a escolha; todos os demais mostram o emoji padrão
+                // por índice (peões distintos e com emoji, sem backend).
+                const swatchEmoji =
+                  isMe && pawnEmoji ? pawnEmoji : emojiForIndex(i)
                 return (
                 <li
                   key={p.id}
@@ -99,7 +102,10 @@ export function LobbyScreen() {
             </ul>
           </div>
 
-          <PawnCustomizer defaultColor={myDefaultColor} name={me?.name ?? ''} />
+          <PawnCustomizer
+            defaultColor={myDefaultColor}
+            defaultEmoji={emojiForIndex(myIndex < 0 ? 0 : myIndex)}
+          />
 
           {isHost ? (
             <Button
@@ -138,17 +144,17 @@ export function LobbyScreen() {
  */
 function PawnCustomizer({
   defaultColor,
-  name,
+  defaultEmoji,
 }: {
   defaultColor: string
-  name: string
+  defaultEmoji: string
 }) {
   const color = usePlayerCustomization((s) => s.color)
   const emoji = usePlayerCustomization((s) => s.emoji)
   const setColor = usePlayerCustomization((s) => s.setColor)
   const setEmoji = usePlayerCustomization((s) => s.setEmoji)
   const effective = color || defaultColor
-  const initial = name.trim().charAt(0).toUpperCase() || '?'
+  const effectiveEmoji = emoji || defaultEmoji
 
   return (
     <div className="mb-6">
@@ -158,7 +164,7 @@ function PawnCustomizer({
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl font-black text-white shadow-inner ring-4 ring-white"
           style={{ backgroundColor: effective }}
         >
-          {emoji || initial}
+          {effectiveEmoji}
         </span>
         <div className="flex-1">
           <div className="mb-2 flex flex-wrap gap-1.5">
