@@ -11,6 +11,7 @@ import { Dice3D } from '../../ui/Dice3D'
 import { colorForIndex, tierMeta, toPlayerViews } from './playerViews'
 import { computeTiers } from '../../game/engine'
 import { usePlayerCustomization } from '../lobby/usePlayerCustomization'
+import type { OrderingState, OrderRollEvent } from '../../game/types'
 import { useDiceThrows } from './useDiceThrows'
 import { DiceThrowOverlay } from './DiceThrowOverlay'
 import { QuestionModal } from './QuestionModal'
@@ -20,7 +21,8 @@ export function PlayScreen() {
   const session = useGameStore((s) => s.session)
   const phase = useGameStore((s) => s.phase)
   const lastDice = useGameStore((s) => s.lastDice)
-  const order = useGameStore((s) => s.order)
+  const ordering = useGameStore((s) => s.ordering)
+  const orderRolls = useGameStore((s) => s.orderRolls)
   const rollForOrder = useGameStore((s) => s.rollForOrder)
   const rollDice = useGameStore((s) => s.rollDice)
   const myPlayerId = useGameStore((s) => s.myPlayerId)
@@ -116,11 +118,23 @@ export function PlayScreen() {
 
         {isOrderPhase ? (
           <OrderPanel
-            hasRolls={!!order}
-            rolls={order?.rolls ?? []}
+            ordering={ordering}
+            rolls={orderRolls}
             nameOf={(id) =>
               session.players.find((p) => p.id === id)?.name ?? '?'
             }
+            canRoll={
+              !!ordering &&
+              !!myPlayerId &&
+              ordering.playersToRoll.includes(myPlayerId) &&
+              !ordering.rolled.includes(myPlayerId)
+            }
+            alreadyRolled={
+              !!ordering &&
+              !!myPlayerId &&
+              ordering.rolled.includes(myPlayerId)
+            }
+            isThrowing={isThrowing}
             onRoll={rollForOrder}
           />
         ) : (
@@ -232,42 +246,62 @@ export function PlayScreen() {
 }
 
 function OrderPanel({
-  hasRolls,
+  ordering,
   rolls,
   nameOf,
+  canRoll,
+  alreadyRolled,
+  isThrowing,
   onRoll,
 }: {
-  hasRolls: boolean
-  rolls: { playerId: string; value: number }[]
+  ordering: OrderingState | null
+  rolls: OrderRollEvent[]
   nameOf: (id: string) => string
+  canRoll: boolean
+  alreadyRolled: boolean
+  isThrowing: boolean
   onRoll: () => void
 }) {
+  const round = ordering?.round ?? 1
+  const playersToRoll = ordering?.playersToRoll ?? []
+  const rolled = ordering?.rolled ?? []
+  const valueOf = (id: string) => rolls.find((r) => r.playerId === id)?.value
+
   return (
     <section className="mb-5 rounded-2xl bg-slate-100 p-4 text-center">
-      <p className="mb-1 text-lg font-black text-slate-800">Definir ordem</p>
-      <p className="mb-3 text-sm text-slate-500">
-        Todos rolam o dado. Quem tirar mais, começa (empate rola de novo).
+      <p className="mb-1 text-lg font-black text-slate-800">
+        {round > 1 ? `Desempate · rodada ${round}` : 'Definir ordem'}
       </p>
-      {hasRolls && (
-        <ul className="mb-3 space-y-1 text-left text-sm">
-          {[...rolls]
-            .sort((a, b) => b.value - a.value)
-            .map((r) => (
-              <li
-                key={r.playerId}
-                className="flex justify-between rounded-lg bg-white px-3 py-1.5"
-              >
-                <span className="font-semibold text-slate-700">
-                  {nameOf(r.playerId)}
-                </span>
-                <span className="font-black text-brand">{r.value}</span>
-              </li>
-            ))}
-        </ul>
+      <p className="mb-3 text-sm text-slate-500">
+        Cada jogador rola o dado. Quem tirar mais começa — empate rola de novo.
+      </p>
+      <ul className="mb-3 space-y-1 text-left text-sm">
+        {playersToRoll.map((id) => {
+          const done = rolled.includes(id)
+          return (
+            <li
+              key={id}
+              className="flex justify-between rounded-lg bg-white px-3 py-1.5"
+            >
+              <span className="font-semibold text-slate-700">{nameOf(id)}</span>
+              <span className={done ? 'font-black text-brand' : 'text-slate-400'}>
+                {done ? (valueOf(id) ?? '✓') : 'rolando…'}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      {canRoll ? (
+        <Button className="w-full" disabled={isThrowing} onClick={onRoll}>
+          {isThrowing ? 'Aguarde…' : 'Rolar dado'}
+        </Button>
+      ) : (
+        <p className="rounded-xl bg-white py-3 text-sm font-semibold text-slate-500">
+          {alreadyRolled
+            ? 'Você já rolou — aguardando os demais…'
+            : 'Aguardando os jogadores…'}
+        </p>
       )}
-      <Button className="w-full" onClick={onRoll}>
-        Rolar para ordem
-      </Button>
     </section>
   )
 }

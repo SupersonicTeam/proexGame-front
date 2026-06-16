@@ -6,12 +6,12 @@
  * (que o store atualiza na hora). Sem isso, o peão andaria antes do dado cair.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getGameClient, useGameStore } from '../../game/store/gameStore'
+import { getGameClient } from '../../game/store/gameStore'
 import type {
   AnswerResultEvent,
   DiceResultEvent,
   GameStartedEvent,
-  OrderResultEvent,
+  OrderRollEvent,
 } from '../../game/types'
 
 export interface ThrowItem {
@@ -110,12 +110,10 @@ export function useDiceThrows(): DiceThrowsApi {
       })
     }
 
-    const onOrder = (e: OrderResultEvent) => {
-      const myId = useGameStore.getState().myPlayerId
-      const mine = e.rolls.find((r) => r.playerId === myId) ?? e.rolls[0]
-      if (!mine) return
+    // S4: cada rolagem de ordem (de qualquer jogador) anima no overlay.
+    const onOrderRoll = (e: OrderRollEvent) => {
       idRef.current += 1
-      enqueue({ id: idRef.current, kind: 'order', value: mine.value })
+      enqueue({ id: idRef.current, kind: 'order', value: e.value })
     }
 
     // Movimento por resposta (acerto/erro) não passa pelo overlay do dado;
@@ -136,13 +134,13 @@ export function useDiceThrows(): DiceThrowsApi {
     }
 
     client.on('diceResult', onDice)
-    client.on('orderResult', onOrder)
+    client.on('orderRoll', onOrderRoll)
     client.on('answerResult', onAnswer)
     client.on('gameStarted', onStarted)
 
     return () => {
       client.off('diceResult', onDice)
-      client.off('orderResult', onOrder)
+      client.off('orderRoll', onOrderRoll)
       client.off('answerResult', onAnswer)
       client.off('gameStarted', onStarted)
       if (nextTimer.current) clearTimeout(nextTimer.current)

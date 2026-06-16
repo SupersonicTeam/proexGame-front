@@ -1,3 +1,8 @@
+> ⚠️ **ARQUIVADO — proposta NÃO adotada pelo backend.** O backend consolidou o
+> contrato em **`CONTRACT.md`** (fonte da verdade) e seguiu outro caminho na Sprint 4.
+> O breakdown de catch-up (`tier`/`baseAdvance`/`tierBonus`) ficou **só no mock**.
+> Mantido aqui apenas como histórico.
+
 # Contrato WebSocket — Sprint 3 (PROPOSTA — pendente de aceite do backend)
 
 > Estende `CONTRACT-S2.md`. Tudo da S1/S2 continua valendo; aqui só o que a Sprint 3

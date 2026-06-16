@@ -24,6 +24,7 @@ import type {
   GameEventHandler,
   GameEventName,
   JoinSessionInput,
+  OrderRollEntry,
   Player,
   RankingEntry,
   ReconnectInput,
@@ -47,11 +48,31 @@ interface RawPlayerView {
   name: string
   connected: boolean
   isHost: boolean
+  /** S3+: posição do peão (0 = início). */
+  square?: number
+}
+interface RawOrdering {
+  round: number
+  playersToRoll: string[]
+  rolled: string[]
+}
+interface RawGameState {
+  code: string
+  status: string
+  difficulty: Difficulty
+  board: RawBoard
+  players: RawPlayerView[]
+  currentTurnPlayerId: string | null
+  ordering: RawOrdering | null
+  winner: string | null
+  ranking: RankingEntry[] | null
 }
 interface RawLobbyState {
   code: string
   status: string
   hostId: string
+  /** S3+: dificuldade no lobby (importante p/ quem entra via joinSession). */
+  difficulty?: Difficulty
   players: RawPlayerView[]
 }
 interface RawBoard {
@@ -67,6 +88,8 @@ interface RawDiceResult {
 }
 interface RawQuestionPrompt {
   questionId: string
+  /** S3+: o backend agora envia a matéria; mantemos opcional por robustez. */
+  subject?: Subject
   statement: string
   options: string[]
 }
@@ -77,6 +100,8 @@ interface RawAnswerResult {
   movement: number
   fromSquare: number
   toSquare: number
+  /** S3+: índice da correta — só chega ao AUTOR, pós-submissão (RF-16). */
+  correctIndex?: number
   /**
    * Detalhamento do movimento de acerto (§4) — CONTRACT-S3, ADITIVO e OPCIONAL.
    * O backend S2 atual NÃO envia estes campos; só aparecem após o aceite da
@@ -207,7 +232,9 @@ export class SocketGameClient implements GameClient {
     s.on('gameStarted', (raw: { board: RawBoard }) => {
       if (this.session) {
         this.session.board = buildBoard(raw.board)
-        this.session.status = 'playing'
+        // S4: após startGame a partida entra em ORDEM (não direto em playing);
+        // o gameState seguinte confirma o status.
+        this.session.status = 'ordering'
       }
       this.emitter.emit('gameStarted', {
         board: this.session ? this.session.board : buildBoard(raw.board),
@@ -215,19 +242,57 @@ export class SocketGameClient implements GameClient {
       })
     })
 
+    // Snapshot canônico (S4): resync/reconexão e transições de status.
+    s.on('gameState', (raw: RawGameState) => {
+      this.applyGameState(raw)
+      this.emitter.emit('gameState', { session: this.snapshot() })
+    })
+
+    // Início de uma rodada da fase de ordem (S4, RF-04).
+    s.on('orderPhase', (raw: { round: number; playersToRoll: string[] }) => {
+      if (this.session) {
+        this.session.status = 'ordering'
+        this.session.ordering = {
+          round: raw.round,
+          playersToRoll: raw.playersToRoll,
+          rolled: [],
+        }
+      }
+      this.emitter.emit('orderPhase', raw)
+    })
+
+    // Rolagem individual de ordem (S4) — para animar o dado de cada jogador.
+    s.on(
+      'orderRoll',
+      (raw: { playerId: string; value: number; round: number }) => {
+        if (this.session?.ordering) {
+          this.session.ordering = {
+            ...this.session.ordering,
+            rolled: [...this.session.ordering.rolled, raw.playerId],
+          }
+        }
+        this.emitter.emit('orderRoll', raw)
+      },
+    )
+
     s.on(
       'orderResult',
       (raw: {
-        rolls: { playerId: string; value: number }[]
+        rolls: OrderRollEntry[]
+        rounds: OrderRollEntry[][]
         turnOrder: string[]
       }) => {
         if (this.session) {
           this.session.turnOrder = raw.turnOrder
           this.session.currentTurnIndex = 0
+          this.session.ordering = null
+          // Persiste para sobreviver a refresh: o gameState do resync NÃO traz
+          // turnOrder, então sem isto a UI ficaria "sem turno" após reconexão.
+          this.saveTurnOrder(this.session.code, raw.turnOrder)
         }
         this.emitter.emit('orderResult', {
           rolls: raw.rolls,
-          tiedPlayerIds: [],
+          rounds: raw.rounds,
           turnOrder: raw.turnOrder,
         })
       },
@@ -252,7 +317,8 @@ export class SocketGameClient implements GameClient {
     s.on('questionPrompt', (raw: RawQuestionPrompt) => {
       this.emitter.emit('questionPrompt', {
         questionId: raw.questionId,
-        subject: this.subjectForLocalPlayer(),
+        // S3+: usa a matéria do backend; deriva da casa só como fallback.
+        subject: raw.subject ?? this.subjectForLocalPlayer(),
         statement: raw.statement,
         options: raw.options,
       })
@@ -272,6 +338,8 @@ export class SocketGameClient implements GameClient {
         movement: raw.movement,
         fromSquare: raw.fromSquare,
         toSquare: raw.toSquare,
+        // S3+: correctIndex chega só ao autor (RF-16); destaca a correta a ele.
+        correctIndex: raw.correctIndex,
         tier: raw.tier,
         baseAdvance: raw.baseAdvance,
         tierBonus: raw.tierBonus,
@@ -341,6 +409,8 @@ export class SocketGameClient implements GameClient {
   private applyLobby(raw: RawLobbyState): void {
     if (!this.session) this.session = this.blankSession(raw.code, 'normal')
     this.session.code = raw.code
+    // S3+: o lobby carrega a dificuldade — corrige quem entrou via joinSession.
+    if (raw.difficulty) this.session.difficulty = raw.difficulty
     this.session.status = raw.status as SessionStatus
     const previous = new Map(this.session.players.map((p) => [p.id, p]))
     this.session.players = raw.players.map((pv) => {
@@ -350,11 +420,71 @@ export class SocketGameClient implements GameClient {
         name: pv.name,
         connected: pv.connected,
         isHost: pv.isHost,
-        square: ex?.square ?? 0,
+        square: pv.square ?? ex?.square ?? 0,
         skipTurns: ex?.skipTurns ?? 0,
         usedQuestionIds: ex?.usedQuestionIds ?? [],
       }
     })
+  }
+
+  /** Aplica um snapshot canônico (`gameState`, S4) sobre a sessão local. */
+  private applyGameState(raw: RawGameState): void {
+    if (!this.session) {
+      this.session = this.blankSession(raw.code, raw.difficulty)
+    }
+    const s = this.session
+    s.code = raw.code
+    s.status = raw.status as SessionStatus
+    s.difficulty = raw.difficulty
+    s.board = buildBoard(raw.board)
+    const previous = new Map(s.players.map((p) => [p.id, p]))
+    s.players = raw.players.map((pv) => {
+      const ex = previous.get(pv.id)
+      return {
+        id: pv.id,
+        name: pv.name,
+        connected: pv.connected,
+        isHost: pv.isHost,
+        square: pv.square ?? ex?.square ?? 0,
+        skipTurns: ex?.skipTurns ?? 0,
+        usedQuestionIds: ex?.usedQuestionIds ?? [],
+      }
+    })
+    s.ordering = raw.ordering
+      ? {
+          round: raw.ordering.round,
+          playersToRoll: raw.ordering.playersToRoll,
+          rolled: raw.ordering.rolled,
+        }
+      : null
+    s.winner = raw.winner
+    // O gameState do resync NÃO traz turnOrder; restaura o persistido para a UI
+    // conseguir resolver o turno atual a partir de currentTurnPlayerId (reconexão).
+    if (s.turnOrder.length === 0) {
+      s.turnOrder = this.loadTurnOrder(raw.code)
+    }
+    if (raw.currentTurnPlayerId) {
+      const idx = s.turnOrder.indexOf(raw.currentTurnPlayerId)
+      if (idx >= 0) s.currentTurnIndex = idx
+    }
+  }
+
+  /* turnOrder sobrevive a refresh: o gameState do resync não o reenvia. */
+  private saveTurnOrder(code: string, turnOrder: string[]): void {
+    try {
+      localStorage.setItem(`tds-turnorder-${code}`, JSON.stringify(turnOrder))
+    } catch {
+      /* localStorage indisponível: ignora (resync pode falhar em achar o turno). */
+    }
+  }
+
+  private loadTurnOrder(code: string): string[] {
+    try {
+      const raw = JSON.parse(localStorage.getItem(`tds-turnorder-${code}`) ?? '[]')
+      return Array.isArray(raw) ? raw : []
+    } catch {
+      return []
+    }
   }
 
   private blankSession(code: string, difficulty: Difficulty): SessionState {
@@ -372,6 +502,7 @@ export class SocketGameClient implements GameClient {
       players: [],
       turnOrder: [],
       currentTurnIndex: 0,
+      ordering: null,
       winner: null,
       createdAt: now,
       lastActivityAt: now,
