@@ -1,6 +1,7 @@
 import type { Player, Tier } from '../../game/types'
 import type { PlayerView } from '../board'
 import { TOKEN_COLORS } from '../board/theme'
+import { PAWN_EMOJIS } from '../lobby/usePlayerCustomization'
 
 /**
  * Rótulo visual de cada tier de catch-up (§3/§4). Exibido ao vivo no painel
@@ -45,7 +46,12 @@ export function toPlayerViews(
           : TOKEN_COLORS[i % TOKEN_COLORS.length],
       square: p.square,
       isCurrentUser: isMe,
-      emoji: isMe && custom?.emoji ? custom.emoji : undefined,
+      // Local com escolha → a escolha; senão → emoji padrão por índice (todos
+      // os peões ficam distintos e com emoji, consistente entre clientes).
+      emoji:
+        isMe && custom?.emoji
+          ? custom.emoji
+          : PAWN_EMOJIS[i % PAWN_EMOJIS.length],
     }
   })
 }
@@ -53,4 +59,14 @@ export function toPlayerViews(
 /** Cor do token de um jogador pelo seu índice na lista da sessão. */
 export function colorForIndex(index: number): string {
   return TOKEN_COLORS[index % TOKEN_COLORS.length]
+}
+
+/**
+ * Emoji PADRÃO de um jogador pelo índice na lista da sessão. Determinístico
+ * (igual em todos os clientes, pois a ordem da lista vem do servidor), então
+ * todo peão fica visualmente distinto e com emoji — sem precisar do backend
+ * guardar a escolha de cada um. O jogador local pode sobrepor o seu no seletor.
+ */
+export function emojiForIndex(index: number): string {
+  return PAWN_EMOJIS[index % PAWN_EMOJIS.length]
 }
