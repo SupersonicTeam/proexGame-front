@@ -219,8 +219,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   })
 
   client.on('turnChanged', ({ session }) => {
-    // Ao trocar de turno, qualquer pergunta/aviso pendente é descartado.
-    if (spectatorTimer) {
+    // Ao trocar de turno, descartamos pergunta e avisos PENDENTES de espectador
+    // ('answering'). Mas o RESULTADO recém-emitido (acertou/errou) é preservado:
+    // o backend manda `turnChanged` logo após o `answerResult` (acerto/erro sem
+    // encadeamento), e limpar aqui apagava o aviso antes de o espectador vê-lo.
+    // Esse aviso já tem timer próprio (SPECTATOR_RESULT_MS) para sumir sozinho.
+    const note = get().spectatorNote
+    const keepResult = note !== null && note.kind !== 'answering'
+    if (!keepResult && spectatorTimer) {
       clearTimeout(spectatorTimer)
       spectatorTimer = null
     }
@@ -229,7 +235,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       phase: derivePhase(session),
       question: null,
       turnSkipped: null,
-      spectatorNote: null,
+      spectatorNote: keepResult ? note : null,
     })
   })
 
