@@ -4,6 +4,7 @@ import type {
   GameEventName,
   JoinSessionInput,
   ReconnectInput,
+  SetAppearanceInput,
   SubmitAnswerInput,
 } from '../types'
 
@@ -27,6 +28,10 @@ export interface GameClient {
   submitAnswer(input: SubmitAnswerInput): void
   leaveSession(): void
   reconnect(input: ReconnectInput): void
+  /** S5 — define a aparência do próprio peão; o servidor faz rebroadcast. */
+  setAppearance(input: SetAppearanceInput): void
+  /** Pede um snapshot canônico (`gameState`) — resync sob demanda (pós-refresh). */
+  requestState(): void
 
   /* ---- assinatura de eventos (server → client, §7) ---- */
   on<K extends GameEventName>(event: K, handler: GameEventHandler<K>): void

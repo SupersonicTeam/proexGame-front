@@ -9,6 +9,7 @@ import type {
   RankingEntry,
   ReconnectInput,
   SessionState,
+  SetAppearanceInput,
   Subject,
   SubmitAnswerInput,
   Tier,
@@ -312,6 +313,34 @@ export class MockGameClient implements GameClient {
           })
         }
       }
+    }
+  }
+
+  /**
+   * S5 — define a aparência do peão do jogador local e faz rebroadcast: no
+   * lobby via `lobbyState`, em ordem/jogo via `gameState`. Puramente cosmético.
+   */
+  setAppearance(input: SetAppearanceInput): void {
+    if (!this.session || !this.myPlayerId) return
+    const me = this.session.players.find((p) => p.id === this.myPlayerId)
+    if (!me) return
+    me.color = input.color
+    me.emoji = input.emoji
+    this.touch()
+    if (this.phase === 'lobby') {
+      this.emitLobby()
+    } else {
+      this.emitter.emit('gameState', { session: this.snapshot() })
+    }
+  }
+
+  /** Resync sob demanda: reenvia o estado canônico conforme a fase. */
+  requestState(): void {
+    if (!this.session) return
+    if (this.phase === 'lobby') {
+      this.emitLobby()
+    } else {
+      this.emitter.emit('gameState', { session: this.snapshot() })
     }
   }
 

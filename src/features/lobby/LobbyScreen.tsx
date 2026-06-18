@@ -24,6 +24,7 @@ export function LobbyScreen() {
   const session = useGameStore((s) => s.session)
   const startGame = useGameStore((s) => s.startGame)
   const leaveSession = useGameStore((s) => s.leaveSession)
+  const setAppearance = useGameStore((s) => s.setAppearance)
   const reset = useGameStore((s) => s.reset)
   const me = useMyPlayer()
   const pawnColor = usePlayerCustomization((s) => s.color)
@@ -68,12 +69,12 @@ export function LobbyScreen() {
             <ul className="space-y-2.5">
               {session.players.map((p, i) => {
                 const isMe = p.id === me?.id
+                // S5: aparência sincronizada do backend (qualquer jogador) tem
+                // prioridade; senão a escolha local do próprio; senão o índice.
                 const swatchColor =
-                  isMe && pawnColor ? pawnColor : colorForIndex(i)
-                // Local usa a escolha; todos os demais mostram o emoji padrão
-                // por índice (peões distintos e com emoji, sem backend).
+                  p.color ?? (isMe && pawnColor ? pawnColor : colorForIndex(i))
                 const swatchEmoji =
-                  isMe && pawnEmoji ? pawnEmoji : emojiForIndex(i)
+                  p.emoji ?? (isMe && pawnEmoji ? pawnEmoji : emojiForIndex(i))
                 return (
                 <li
                   key={p.id}
@@ -105,6 +106,9 @@ export function LobbyScreen() {
           <PawnCustomizer
             defaultColor={myDefaultColor}
             defaultEmoji={emojiForIndex(myIndex < 0 ? 0 : myIndex)}
+            onAppearanceChange={(color, emoji) =>
+              setAppearance({ color, emoji })
+            }
           />
 
           {isHost ? (
@@ -145,9 +149,12 @@ export function LobbyScreen() {
 function PawnCustomizer({
   defaultColor,
   defaultEmoji,
+  onAppearanceChange,
 }: {
   defaultColor: string
   defaultEmoji: string
+  /** S5 — chamado com a aparência EFETIVA (resolvida) a cada escolha. */
+  onAppearanceChange: (color: string, emoji: string) => void
 }) {
   const color = usePlayerCustomization((s) => s.color)
   const emoji = usePlayerCustomization((s) => s.emoji)
@@ -155,6 +162,19 @@ function PawnCustomizer({
   const setEmoji = usePlayerCustomization((s) => s.setEmoji)
   const effective = color || defaultColor
   const effectiveEmoji = emoji || defaultEmoji
+
+  // Aplica a escolha localmente (feedback imediato) E sincroniza com o backend
+  // com os valores EFETIVOS (sempre cor+emoji válidos — exigência do contrato).
+  const pickColor = (c: string) => {
+    const nextColor = color === c ? '' : c
+    setColor(nextColor)
+    onAppearanceChange(nextColor || defaultColor, effectiveEmoji)
+  }
+  const pickEmoji = (e: string) => {
+    const nextEmoji = emoji === e ? '' : e
+    setEmoji(e)
+    onAppearanceChange(effective, nextEmoji || defaultEmoji)
+  }
 
   return (
     <div className="mb-6">
@@ -172,7 +192,7 @@ function PawnCustomizer({
               <button
                 key={c}
                 type="button"
-                onClick={() => setColor(color === c ? '' : c)}
+                onClick={() => pickColor(c)}
                 aria-label={`Cor ${c}`}
                 aria-pressed={effective === c}
                 className={
@@ -191,7 +211,7 @@ function PawnCustomizer({
               <button
                 key={e}
                 type="button"
-                onClick={() => setEmoji(e)}
+                onClick={() => pickEmoji(e)}
                 aria-label={`Emoji ${e}`}
                 aria-pressed={emoji === e}
                 className={

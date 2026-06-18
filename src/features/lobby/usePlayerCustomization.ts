@@ -1,8 +1,9 @@
 /**
- * Customização LOCAL do peão do jogador (cor + emoji), persistida em
- * localStorage. É só do cliente local: enquanto o backend não guardar/propagar
- * essas escolhas, os outros jogadores continuam com a cor por índice. A
- * sincronização entre clientes fica como proposta de contrato (S4).
+ * Customização do peão do jogador (cor + emoji), persistida em localStorage
+ * para lembrar a preferência entre sessões. A escolha é aplicada localmente
+ * (feedback imediato) E sincronizada com o backend via `setAppearance` (S5),
+ * que faz rebroadcast — então os OUTROS jogadores também enxergam a aparência
+ * (campos `color`/`emoji` em `PlayerView`). Sem escolha → fallback por índice.
  */
 import { create } from 'zustand'
 

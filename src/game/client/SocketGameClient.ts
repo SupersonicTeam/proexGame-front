@@ -30,6 +30,7 @@ import type {
   ReconnectInput,
   SessionState,
   SessionStatus,
+  SetAppearanceInput,
   Subject,
   SubmitAnswerInput,
   Tier,
@@ -50,6 +51,9 @@ interface RawPlayerView {
   isHost: boolean
   /** S3+: posição do peão (0 = início). */
   square?: number
+  /** S5: aparência escolhida pelo jogador (ausente = fallback por índice). */
+  color?: string
+  emoji?: string
 }
 interface RawOrdering {
   round: number
@@ -195,11 +199,21 @@ export class SocketGameClient implements GameClient {
   }
 
   leaveSession(): void {
+    // Saída deliberada: descarta a identidade salva p/ não auto-reconectar depois.
+    this.clearCreds()
     this.socket.emit('leaveSession')
   }
 
   reconnect(input: ReconnectInput): void {
     this.socket.emit('reconnect', input)
+  }
+
+  setAppearance(input: SetAppearanceInput): void {
+    this.socket.emit('setAppearance', input)
+  }
+
+  requestState(): void {
+    this.socket.emit('requestState')
   }
 
   dispose(): void {
@@ -216,6 +230,14 @@ export class SocketGameClient implements GameClient {
 
   private registerHandlers(): void {
     const s = this.socket
+
+    // Auto-reconnect (CONTRACT pós-S5 #3): a cada (re)conexão do transporte, se
+    // houver `code`+`playerId` salvos (queda de rede, redeploy do backend ou
+    // refresh da página), reenvia `reconnect` para retomar a vez antes do grace.
+    s.on('connect', () => {
+      const creds = this.loadCreds()
+      if (creds) this.socket.emit('reconnect', creds)
+    })
 
     s.on('connect_error', (err: Error) => {
       this.emitter.emit('error', {
@@ -378,10 +400,19 @@ export class SocketGameClient implements GameClient {
     })
 
     s.on('sessionClosed', (raw: { reason: string }) => {
+      // Sessão encerrada: descarta a identidade p/ não auto-reconectar a uma
+      // sessão morta no próximo connect.
+      this.clearCreds()
       this.emitter.emit('sessionClosed', raw)
     })
 
     s.on('error', (raw: { code: string; message: string }) => {
+      // Reconexão rejeitada (sessão morta / creds obsoletas): descarta a
+      // identidade salva p/ não insistir num auto-reconnect inválido a cada
+      // connect (ex.: visita nova com creds antigas no localStorage).
+      if (raw.code === 'RECONNECT_FAILED' || raw.code === 'SESSION_NOT_FOUND') {
+        this.clearCreds()
+      }
       this.emitter.emit('error', raw)
     })
     // 'sessionCreated'/'playerJoined' do servidor são ignorados: usamos o ACK
@@ -394,6 +425,8 @@ export class SocketGameClient implements GameClient {
 
   private onIdentity(ack: Ack, difficulty: Difficulty): void {
     this.myPlayerId = ack.playerId
+    // Guarda a identidade para o auto-reconnect (queda/redeploy/refresh).
+    this.saveCreds(ack.code, ack.playerId)
     if (!this.session) {
       this.session = this.blankSession(ack.code, difficulty)
     } else {
@@ -423,6 +456,9 @@ export class SocketGameClient implements GameClient {
         square: pv.square ?? ex?.square ?? 0,
         skipTurns: ex?.skipTurns ?? 0,
         usedQuestionIds: ex?.usedQuestionIds ?? [],
+        // S5: preserva a aparência anterior quando o payload não a traz.
+        color: pv.color ?? ex?.color,
+        emoji: pv.emoji ?? ex?.emoji,
       }
     })
   }
@@ -448,6 +484,9 @@ export class SocketGameClient implements GameClient {
         square: pv.square ?? ex?.square ?? 0,
         skipTurns: ex?.skipTurns ?? 0,
         usedQuestionIds: ex?.usedQuestionIds ?? [],
+        // S5: preserva a aparência anterior quando o payload não a traz.
+        color: pv.color ?? ex?.color,
+        emoji: pv.emoji ?? ex?.emoji,
       }
     })
     s.ordering = raw.ordering
@@ -484,6 +523,35 @@ export class SocketGameClient implements GameClient {
       return Array.isArray(raw) ? raw : []
     } catch {
       return []
+    }
+  }
+
+  /* Identidade (code+playerId) p/ auto-reconnect — sobrevive a refresh. */
+  private saveCreds(code: string, playerId: string): void {
+    try {
+      localStorage.setItem('tds-creds', JSON.stringify({ code, playerId }))
+    } catch {
+      /* localStorage indisponível: auto-reconnect por refresh fica indisponível. */
+    }
+  }
+
+  private loadCreds(): ReconnectInput | null {
+    try {
+      const raw = JSON.parse(localStorage.getItem('tds-creds') ?? 'null')
+      if (raw && typeof raw.code === 'string' && typeof raw.playerId === 'string') {
+        return { code: raw.code, playerId: raw.playerId }
+      }
+    } catch {
+      /* ignora credenciais corrompidas. */
+    }
+    return null
+  }
+
+  private clearCreds(): void {
+    try {
+      localStorage.removeItem('tds-creds')
+    } catch {
+      /* ignora. */
     }
   }
 
