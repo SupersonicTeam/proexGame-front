@@ -164,7 +164,7 @@ export function PlayScreen() {
 
       {/* HUD */}
       <aside className="w-full shrink-0 bg-white/95 p-5 shadow-2xl lg:w-96">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center gap-2 pr-12">
           <h2 className="text-xl font-black text-slate-800">Partida</h2>
           <span className="font-mono text-sm font-bold text-slate-400">
             #{session.code}
