@@ -56,15 +56,30 @@ export function BoardSvg({
     [tileCount, cols],
   )
 
-  // Agrupa jogadores por casa para calcular os offsets de cluster.
-  const playersBySquare = useMemo(() => {
-    const map = new Map<number, PlayerView[]>()
+  // Layout de cada token (offset de cluster + raio), indexado por jogador.
+  // Agrupar por casa serve SÓ para calcular o offset; os tokens são renderizados
+  // numa lista PLANA (keyed por id) para que a identidade do componente seja
+  // estável quando o agrupamento muda — senão o React remonta o PlayerToken ao
+  // sair de um cluster e o peão "teleporta" em vez de andar casa a casa.
+  const tokenLayoutById = useMemo(() => {
+    const bySquare = new Map<number, PlayerView[]>()
     for (const p of players) {
-      const list = map.get(p.square)
+      const list = bySquare.get(p.square)
       if (list) list.push(p)
-      else map.set(p.square, [p])
+      else bySquare.set(p.square, [p])
     }
-    return map
+    const result = new Map<
+      string,
+      { offset: { dx: number; dy: number }; radius: number }
+    >()
+    for (const group of bySquare.values()) {
+      const offsets = computeClusterOffsets(group.length)
+      const radius = tokenRadiusForCount(group.length)
+      group.forEach((player, j) => {
+        result.set(player.id, { offset: offsets[j], radius })
+      })
+    }
+    return result
   }, [players])
 
   return (
@@ -110,19 +125,19 @@ export function BoardSvg({
           )
         })}
 
-        {[...playersBySquare.values()].map((group) => {
-          const offsets = computeClusterOffsets(group.length)
-          const tokenRadius = tokenRadiusForCount(group.length)
-          return group.map((player, j) => (
+        {players.map((player) => {
+          const tl = tokenLayoutById.get(player.id)
+          if (!tl) return null
+          return (
             <PlayerToken
               key={player.id}
               player={player}
               points={layout.points}
-              offset={offsets[j]}
-              radius={tokenRadius}
+              offset={tl.offset}
+              radius={tl.radius}
               isCurrentTurn={player.id === currentTurnPlayerId}
             />
-          ))
+          )
         })}
       </svg>
     </div>
