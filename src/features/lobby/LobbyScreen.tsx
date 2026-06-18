@@ -1,9 +1,10 @@
+import { useEffect } from 'react'
 import type { Difficulty } from '../../game/types'
 import { useGameStore, useMyPlayer } from '../../game/store/gameStore'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { Screen } from '../../ui/Screen'
-import { colorForIndex, emojiForIndex } from '../play/playerViews'
+import { appearanceToSync, colorForIndex, emojiForIndex } from '../play/playerViews'
 import {
   PAWN_COLORS,
   PAWN_EMOJIS,
@@ -30,11 +31,26 @@ export function LobbyScreen() {
   const pawnColor = usePlayerCustomization((s) => s.color)
   const pawnEmoji = usePlayerCustomization((s) => s.emoji)
 
+  const myIndex = session ? session.players.findIndex((p) => p.id === me?.id) : -1
+
+  // Sincroniza a aparência persistida (localStorage) com o backend ao ENTRAR,
+  // sem depender de o jogador mexer no seletor. Sem isto, a escolha salva fica
+  // só no atalho local e o host vê o fallback por índice até a primeira mexida.
+  // Idempotente: para de reenviar assim que o backend ecoa a mesma aparência.
+  useEffect(() => {
+    if (!me) return
+    const payload = appearanceToSync(
+      { color: me.color, emoji: me.emoji },
+      { color: pawnColor, emoji: pawnEmoji },
+      myIndex,
+    )
+    if (payload) setAppearance(payload)
+  }, [me, pawnColor, pawnEmoji, myIndex, setAppearance])
+
   if (!session) return null
 
   const isHost = me?.isHost ?? false
   const canStart = session.players.length >= MIN_PLAYERS
-  const myIndex = session.players.findIndex((p) => p.id === me?.id)
   const myDefaultColor = colorForIndex(myIndex < 0 ? 0 : myIndex)
 
   return (
