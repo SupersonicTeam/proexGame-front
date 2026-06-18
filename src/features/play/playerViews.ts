@@ -66,6 +66,29 @@ export function colorForIndex(index: number): string {
 }
 
 /**
+ * Decide a aparência a sincronizar com o backend ao ENTRAR (ou ao mudar a
+ * escolha persistida), para que TODOS — inclusive o host — enxerguem a escolha
+ * local, não só o próprio cliente. Sem isso, a aparência salva em localStorage
+ * fica apenas no atalho local (`isMe`) e o host vê o fallback por índice até o
+ * jogador mexer no seletor. Retorna `null` quando nada precisa ser enviado:
+ *  - sem escolha local (cor/emoji) → o fallback determinístico por índice já é
+ *    idêntico em todos os clientes; nada a sincronizar;
+ *  - já ecoado pelo backend (`me.color`/`me.emoji` batem) → evita reenvio/loop.
+ */
+export function appearanceToSync(
+  me: { color?: string; emoji?: string },
+  local: LocalPawn,
+  myIndex: number,
+): { color: string; emoji: string } | null {
+  if (!local.color && !local.emoji) return null
+  const i = myIndex < 0 ? 0 : myIndex
+  const color = local.color || colorForIndex(i)
+  const emoji = local.emoji || emojiForIndex(i)
+  if (me.color === color && me.emoji === emoji) return null
+  return { color, emoji }
+}
+
+/**
  * Emoji PADRÃO de um jogador pelo índice na lista da sessão. Determinístico
  * (igual em todos os clientes, pois a ordem da lista vem do servidor), então
  * todo peão fica visualmente distinto e com emoji — sem precisar do backend
