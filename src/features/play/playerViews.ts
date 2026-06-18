@@ -26,9 +26,13 @@ export interface LocalPawn {
 }
 
 /**
- * Converte os jogadores da sessão para a forma que o tabuleiro precisa,
- * atribuindo uma cor estável por índice e marcando o jogador local. A
- * customização (`custom`) sobrepõe cor/emoji APENAS do jogador local.
+ * Converte os jogadores da sessão para a forma que o tabuleiro precisa e marca
+ * o jogador local. Precedência de aparência (S5):
+ *  1. `p.color`/`p.emoji` vindos do BACKEND (escolha sincronizada de QUALQUER
+ *     jogador via `setAppearance`);
+ *  2. customização LOCAL (`custom`) do jogador local — feedback imediato antes
+ *     do eco do servidor;
+ *  3. fallback determinístico por índice (peões distintos sem backend/escolha).
  */
 export function toPlayerViews(
   players: Player[],
@@ -41,17 +45,17 @@ export function toPlayerViews(
       id: p.id,
       name: p.name,
       color:
-        isMe && custom?.color
+        p.color ??
+        (isMe && custom?.color
           ? custom.color
-          : TOKEN_COLORS[i % TOKEN_COLORS.length],
+          : TOKEN_COLORS[i % TOKEN_COLORS.length]),
       square: p.square,
       isCurrentUser: isMe,
-      // Local com escolha → a escolha; senão → emoji padrão por índice (todos
-      // os peões ficam distintos e com emoji, consistente entre clientes).
       emoji:
-        isMe && custom?.emoji
+        p.emoji ??
+        (isMe && custom?.emoji
           ? custom.emoji
-          : PAWN_EMOJIS[i % PAWN_EMOJIS.length],
+          : PAWN_EMOJIS[i % PAWN_EMOJIS.length]),
     }
   })
 }

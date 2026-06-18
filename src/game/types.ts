@@ -21,18 +21,29 @@ export interface OrderingState {
   rolled: string[]
 }
 
-/** 10 matérias escolares (RF-09). */
-export type Subject =
-  | 'matematica'
-  | 'portugues'
-  | 'historia'
-  | 'geografia'
-  | 'ciencias'
-  | 'biologia'
-  | 'fisica'
-  | 'quimica'
-  | 'ingles'
-  | 'artes'
+/**
+ * Matéria de uma casa-pergunta. É um SLUG ABERTO (string), não uma união
+ * fechada: o backend define o conjunto e pode ganhar matérias novas sem o front
+ * quebrar (CONTRACT pós-S5 #4). O front mapeia cada slug para rótulo/ícone/cor
+ * com FALLBACK genérico (ver `features/board/theme.ts`).
+ *
+ * Matérias atuais do backend (8): `conhecimentos-gerais`, `desenvolvimento-web`,
+ * `fisica`, `logica`, `matematica`, `matematica-financeira`, `portugues`,
+ * `quimica`. O modo demonstração (MockGameClient) usa um banco legado próprio.
+ */
+export type Subject = string
+
+/** As 8 matérias estáveis do backend (CONTRACT pós-S5 #4). */
+export const BACKEND_SUBJECTS = [
+  'conhecimentos-gerais',
+  'desenvolvimento-web',
+  'fisica',
+  'logica',
+  'matematica',
+  'matematica-financeira',
+  'portugues',
+  'quimica',
+] as const
 
 /** Tipo de casa. `prison` e `question` chegam nas Sprints 2/3. */
 export type TileType = 'normal' | 'question' | 'prison'
@@ -70,6 +81,13 @@ export interface Player {
   usedQuestionIds: string[]
   skipTurns: number
   isHost: boolean
+  /**
+   * Aparência do peão escolhida pelo jogador (S5). Propagadas pelo backend em
+   * `lobbyState`/`gameState`/`playerJoined`. Ausente = "sem escolha" → o front
+   * aplica o fallback determinístico por índice. Puramente cosmético (RF-16).
+   */
+  color?: string
+  emoji?: string
 }
 
 /** Pergunta do banco (§6). `correct` NUNCA é enviado ao client (RF-16). */
@@ -126,6 +144,11 @@ export interface SubmitAnswerInput {
 export interface ReconnectInput {
   code: string
   playerId: string
+}
+/** Aparência do peão (S5). `color` = hex `#rrggbb`; `emoji` = 1 grafema. */
+export interface SetAppearanceInput {
+  color: string
+  emoji: string
 }
 
 /** Payloads server → client. */

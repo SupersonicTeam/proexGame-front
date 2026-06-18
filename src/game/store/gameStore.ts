@@ -12,6 +12,7 @@ import type {
   QuestionPromptEvent,
   RankingEntry,
   SessionState,
+  SetAppearanceInput,
   Subject,
   SubmitAnswerInput,
   TurnSkippedEvent,
@@ -75,6 +76,10 @@ export interface GameStoreState {
   rollDice: () => void
   submitAnswer: (input: SubmitAnswerInput) => void
   leaveSession: () => void
+  /** S5 — sincroniza a aparência do peão local com o backend. */
+  setAppearance: (input: SetAppearanceInput) => void
+  /** Resync sob demanda (pós-refresh). */
+  requestState: () => void
   clearQuestion: () => void
   clearTurnSkipped: () => void
   clearSpectatorNote: () => void
@@ -342,6 +347,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     rollDice: () => client.rollDice(),
     submitAnswer: (input) => client.submitAnswer(input),
     leaveSession: () => client.leaveSession(),
+    setAppearance: (input) => client.setAppearance(input),
+    requestState: () => client.requestState(),
     clearQuestion: () => set({ question: null, lastAnswer: null }),
     clearTurnSkipped: () => set({ turnSkipped: null }),
     clearSpectatorNote: () => {

@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { AnswerResultEvent, QuestionPromptEvent } from '../../game/types'
-import { subjectColor, subjectName } from '../board/theme'
+import { subjectColor, subjectIcon, subjectName } from '../board/theme'
 import { playSfx } from '../audio'
 
 interface QuestionModalProps {
@@ -57,6 +57,15 @@ export function QuestionModal({
 
   const subjColor = subjectColor(question.subject)
 
+  // Borda/realce do modal no reveal: verde no acerto, vermelho no erro — feedback
+  // imediato antes mesmo de ler o detalhe. Neutro enquanto escolhe/aguarda.
+  const frameClass =
+    phase === 'reveal' && lastAnswer
+      ? lastAnswer.correct
+        ? 'border-emerald-500 shadow-emerald-500/30'
+        : 'border-rose-500 shadow-rose-500/30'
+      : 'border-transparent'
+
   function optionClass(i: number): string {
     if (!answered) {
       return 'border-slate-200 bg-white hover:border-brand hover:bg-brand/5'
@@ -77,7 +86,10 @@ export function QuestionModal({
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
       <motion.div
-        className="w-full max-w-lg rounded-3xl bg-white p-7 shadow-2xl"
+        className={
+          'w-full max-w-lg rounded-3xl border-4 bg-white p-7 shadow-2xl transition-colors duration-300 ' +
+          frameClass
+        }
         initial={{ scale: 0.9, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 320, damping: 26 }}
@@ -86,7 +98,7 @@ export function QuestionModal({
           className="inline-block rounded-full px-3 py-1 text-sm font-bold text-white"
           style={{ backgroundColor: subjColor }}
         >
-          {subjectName(question.subject)}
+          {subjectIcon(question.subject)} {subjectName(question.subject)}
         </span>
 
         <h2 className="mt-4 text-xl font-black leading-snug text-slate-800">

@@ -18,6 +18,12 @@ interface Dice3DProps {
   rollKey?: number
   /** Chamado quando o arremesso assenta. */
   onSettled?: () => void
+  /**
+   * Modo "rolando" do dado ESTÁTICO (ex.: sidebar): enquanto o dado principal
+   * gira, mostra um indicador de carregamento em vez de uma face fixa — o
+   * resultado só aparece quando este vira `false`. Ignorado no arremesso.
+   */
+  loading?: boolean
 }
 
 const SPINS_X = 3
@@ -40,12 +46,24 @@ function prefersReducedMotion(): boolean {
   )
 }
 
-export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
+export function Dice3D({
+  value,
+  size = 96,
+  rollKey,
+  onSettled,
+  loading = false,
+}: Dice3DProps) {
   const face = value ?? 1
   const half = size / 2
   const isThrow = rollKey !== undefined
   const reduced = prefersReducedMotion()
   const fr = faceRotation(face)
+
+  // Dado estático em espera (sidebar): enquanto o dado principal rola, mostra
+  // um indicador de carregamento — nunca uma face fixa (evita "travado no 1").
+  if (!isThrow && (loading || value == null)) {
+    return <DiceStatusBadge size={size} loading={loading} />
+  }
 
   // Alvo do cubo: no arremesso parte da pose inclinada e adiciona voltas; no
   // modo estático vai direto para a face do valor.
@@ -151,6 +169,51 @@ export function Dice3D({ value, size = 96, rollKey, onSettled }: Dice3DProps) {
           })}
         </motion.div>
       </motion.div>
+    </div>
+  )
+}
+
+/**
+ * Estado do dado estático SEM um valor fixo: `loading` (dado principal rolando)
+ * mostra um anel girando; senão um placeholder neutro (antes da 1ª rolagem) —
+ * em ambos os casos NUNCA exibe a face "1" travada.
+ */
+function DiceStatusBadge({
+  size,
+  loading,
+}: {
+  size: number
+  loading: boolean
+}) {
+  const reduced = prefersReducedMotion()
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="flex items-center justify-center"
+      role="img"
+      aria-label={loading ? 'Rolando o dado…' : 'Aguardando rolagem'}
+      aria-busy={loading}
+    >
+      <div
+        className="relative flex items-center justify-center rounded-md border-2 border-slate-300 bg-gradient-to-br from-white to-slate-100 shadow-inner"
+        style={{ width: size * 0.82, height: size * 0.82 }}
+      >
+        {loading ? (
+          <motion.span
+            className="block rounded-full border-[3px] border-slate-200 border-t-brand"
+            style={{ width: size * 0.42, height: size * 0.42 }}
+            animate={reduced ? undefined : { rotate: 360 }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+          />
+        ) : (
+          <span
+            className="font-black text-slate-300"
+            style={{ fontSize: size * 0.4 }}
+          >
+            ?
+          </span>
+        )}
+      </div>
     </div>
   )
 }
