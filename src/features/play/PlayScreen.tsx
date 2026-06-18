@@ -119,12 +119,14 @@ export function PlayScreen() {
     ? session.players.find((p) => p.id === lastDice.playerId)
     : null
 
-  // Cor de um jogador no HUD: o jogador local usa a cor customizada (se houver);
-  // os demais usam a cor estável por índice. Mantém o HUD coerente com o peão.
+  // Cor de um jogador no HUD, coerente com o peão (mesma precedência de S5):
+  // backend (qualquer jogador) → escolha local do próprio → cor por índice.
   const colorFor = (playerId?: string): string => {
     if (!playerId) return '#334155'
-    if (playerId === myPlayerId && pawnColor) return pawnColor
     const idx = session.players.findIndex((p) => p.id === playerId)
+    const backendColor = idx >= 0 ? session.players[idx].color : undefined
+    if (backendColor) return backendColor
+    if (playerId === myPlayerId && pawnColor) return pawnColor
     return colorForIndex(idx < 0 ? 0 : idx)
   }
 
@@ -182,8 +184,9 @@ export function PlayScreen() {
             </p>
             <div className="mb-3 flex justify-center">
               <Dice3D
-                value={isThrowing ? null : (lastDice?.value ?? null)}
+                value={lastDice?.value ?? null}
                 size={64}
+                loading={isThrowing}
               />
             </div>
             <Button

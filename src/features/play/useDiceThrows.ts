@@ -58,6 +58,19 @@ export function useDiceThrows(): DiceThrowsApi {
   const activeRef = useRef<ThrowItem | null>(null)
   const idRef = useRef(0)
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /**
+   * Movimento por RESPOSTA do jogador LOCAL adiado: o peão dele só anda DEPOIS
+   * que o modal de pergunta sai (fecha ou encadeia outra). Assim a tela de
+   * resultado (acertou/errou + casas) aparece com o peão ainda parado, e o
+   * movimento acontece quando o jogador deixa a tela. Outros jogadores andam na
+   * hora (não têm modal bloqueando).
+   */
+  const pendingSelfMove = useRef<{ playerId: string; toSquare: number } | null>(
+    null,
+  )
+  // Id da pergunta atual do jogador local; ao mudar (some ou encadeia), libera
+  // o movimento adiado.
+  const questionId = useGameStore((s) => s.question?.questionId ?? null)
 
   const [activeThrow, setActiveThrow] = useState<ThrowItem | null>(null)
   const [visualSquares, setVisualSquares] = useState<Record<string, number>>({})
@@ -107,6 +120,20 @@ export function useDiceThrows(): DiceThrowsApi {
     return () => clearTimeout(w)
   }, [activeThrow, onThrowSettled])
 
+  // Libera o movimento adiado do jogador local quando o modal de pergunta sai:
+  // o `questionId` muda (vira null ao fechar/trocar de turno, ou outro id ao
+  // encadear). Só então o peão dele anda para o destino — nunca durante a tela
+  // de resultado. Roda também na 1ª pergunta (pending nulo → no-op).
+  useEffect(() => {
+    const pending = pendingSelfMove.current
+    if (!pending) return
+    pendingSelfMove.current = null
+    setVisualSquares((prev) => ({
+      ...prev,
+      [pending.playerId]: pending.toSquare,
+    }))
+  }, [questionId])
+
   useEffect(() => {
     const client = getGameClient()
 
@@ -136,10 +163,18 @@ export function useDiceThrows(): DiceThrowsApi {
       enqueue({ id: idRef.current, kind: 'order', value: e.value })
     }
 
-    // Movimento por resposta (acerto/erro) não passa pelo overlay do dado;
-    // move o peão diretamente quando o resultado chega.
+    // Movimento por resposta (acerto/erro) não passa pelo overlay do dado.
+    // Jogador LOCAL: adia o movimento — fixa o peão na ORIGEM e guarda o destino
+    // para liberar quando o modal sair (ver efeito do `questionId`). Demais
+    // jogadores: andam na hora (sem modal bloqueando).
     const onAnswer = (e: AnswerResultEvent) => {
-      setVisualSquares((prev) => ({ ...prev, [e.playerId]: e.toSquare }))
+      const myId = useGameStore.getState().myPlayerId
+      if (e.playerId === myId) {
+        pendingSelfMove.current = { playerId: e.playerId, toSquare: e.toSquare }
+        setVisualSquares((prev) => ({ ...prev, [e.playerId]: e.fromSquare }))
+      } else {
+        setVisualSquares((prev) => ({ ...prev, [e.playerId]: e.toSquare }))
+      }
     }
 
     const onStarted = (e: GameStartedEvent) => {
