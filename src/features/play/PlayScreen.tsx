@@ -38,6 +38,10 @@ export function PlayScreen() {
   const submitAnswer = useGameStore((s) => s.submitAnswer)
   const clearQuestion = useGameStore((s) => s.clearQuestion)
   const clearTurnSkipped = useGameStore((s) => s.clearTurnSkipped)
+  const leaveSession = useGameStore((s) => s.leaveSession)
+  const reset = useGameStore((s) => s.reset)
+
+  const [confirmingLeave, setConfirmingLeave] = useState(false)
 
   const me = useMyPlayer()
   const currentPlayer = useCurrentTurnPlayer()
@@ -147,9 +151,40 @@ export function PlayScreen() {
       <aside className="w-full shrink-0 bg-white/95 p-5 shadow-2xl lg:w-96">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-800">Partida</h2>
-          <span className="font-mono text-sm font-bold text-slate-400">
-            #{session.code}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm font-bold text-slate-400">
+              #{session.code}
+            </span>
+            {confirmingLeave ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-600">
+                  Sair?
+                </span>
+                <button
+                  className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-bold text-white hover:bg-rose-600"
+                  onClick={() => {
+                    leaveSession()
+                    reset()
+                  }}
+                >
+                  Sim
+                </button>
+                <button
+                  className="rounded-lg bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-300"
+                  onClick={() => setConfirmingLeave(false)}
+                >
+                  Não
+                </button>
+              </div>
+            ) : (
+              <button
+                className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                onClick={() => setConfirmingLeave(true)}
+              >
+                Sair
+              </button>
+            )}
+          </div>
         </div>
 
         {isOrderPhase ? (
