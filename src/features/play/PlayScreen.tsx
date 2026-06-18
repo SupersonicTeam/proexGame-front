@@ -112,6 +112,25 @@ export function PlayScreen() {
     [visualPlayers],
   )
 
+  // Resultado da resposta do JOGADOR LOCAL. O `lastAnswer` do store também recebe
+  // respostas de OUTROS jogadores (aviso de espectador) — filtramos para o dono
+  // do modal não reagir ao resultado alheio.
+  const myAnswer =
+    lastAnswer && lastAnswer.playerId === myPlayerId ? lastAnswer : null
+
+  // A pergunta exibida no modal precisa SOBREVIVER ao `turnChanged` (que zera
+  // `question` no store) enquanto o reveal do resultado do jogador local ainda
+  // está na tela. No backend real o turno avança IMEDIATAMENTE após a resposta,
+  // então sem congelar a última pergunta o modal de acerto/erro desmontaria antes
+  // mesmo de aparecer. O modal se fecha sozinho (onClose → clearQuestion).
+  // Ajuste de estado derivado DURANTE o render (padrão React): guarda a última
+  // pergunta sem setState em efeito.
+  const [shownQuestion, setShownQuestion] = useState(question)
+  if (question && question !== shownQuestion) {
+    setShownQuestion(question)
+  }
+  const modalQuestion = question ?? (myAnswer ? shownQuestion : null)
+
   if (!session) return null
 
   const isOrderPhase = phase === 'order'
@@ -269,14 +288,16 @@ export function PlayScreen() {
         )}
       </AnimatePresence>
 
-      {/* Pergunta do jogador local — só após o dado/peão assentarem. */}
-      {question && !isThrowing && (
+      {/* Pergunta do jogador local — só após o dado/peão assentarem. A pergunta
+          congelada (`modalQuestion`) mantém o modal vivo durante o reveal mesmo
+          se o turno já avançou (backend real zera `question` na hora). */}
+      {modalQuestion && !isThrowing && (
         <QuestionModal
-          key={question.questionId}
-          question={question}
-          lastAnswer={lastAnswer}
+          key={modalQuestion.questionId}
+          question={modalQuestion}
+          lastAnswer={myAnswer}
           onSubmit={(optionIndex) =>
-            submitAnswer({ questionId: question.questionId, optionIndex })
+            submitAnswer({ questionId: modalQuestion.questionId, optionIndex })
           }
           onClose={clearQuestion}
         />
