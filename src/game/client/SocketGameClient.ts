@@ -205,7 +205,10 @@ export class SocketGameClient implements GameClient {
   }
 
   reconnect(input: ReconnectInput): void {
-    this.socket.emit('reconnect', input)
+    this.myPlayerId = input.playerId
+    this.socket.emit('reconnect', input, (ack: Ack) =>
+      this.onReconnectIdentity(ack),
+    )
   }
 
   setAppearance(input: SetAppearanceInput): void {
@@ -236,7 +239,14 @@ export class SocketGameClient implements GameClient {
     // refresh da página), reenvia `reconnect` para retomar a vez antes do grace.
     s.on('connect', () => {
       const creds = this.loadCreds()
-      if (creds) this.socket.emit('reconnect', creds)
+      if (creds) {
+        // Restaura a identidade local já a partir das creds (sobrevive a refresh):
+        // assim eventos que cheguem antes do ACK já resolvem o jogador local.
+        this.myPlayerId = creds.playerId
+        this.socket.emit('reconnect', creds, (ack: Ack) =>
+          this.onReconnectIdentity(ack),
+        )
+      }
     })
 
     s.on('connect_error', (err: Error) => {
@@ -432,6 +442,23 @@ export class SocketGameClient implements GameClient {
     } else {
       this.session.code = ack.code
     }
+    this.emitter.emit('sessionCreated', {
+      code: ack.code,
+      playerId: ack.playerId,
+      session: this.snapshot(),
+    })
+  }
+
+  /**
+   * Reconexão (auto-reconnect pós-refresh/queda): o backend devolve a identidade
+   * no ACK de `reconnect`. Diferente do create/join, aqui NÃO há `sessionCreated`
+   * do servidor — então reemitimos um internamente para o store recuperar o
+   * `myPlayerId`. Sem isto, `useMyPlayer()` fica null e o HOST perde o botão
+   * "Iniciar partida" (a sessão é restaurada pelo `lobbyState`, mas a identidade não).
+   */
+  private onReconnectIdentity(ack: Ack): void {
+    this.myPlayerId = ack.playerId
+    this.saveCreds(ack.code, ack.playerId)
     this.emitter.emit('sessionCreated', {
       code: ack.code,
       playerId: ack.playerId,
