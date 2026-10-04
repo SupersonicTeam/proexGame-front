@@ -2,6 +2,7 @@
   {
     "id": "vet-0001",
     "subject": "vetores",
+    "difficulty": "easy",
     "statement": "Para que serve um vetor?",
     "correct": "Guardar vários valores do mesmo tipo sob um único nome, acessados por índice",
     "proximal": "Guardar um único valor que pode mudar de tipo",
@@ -13,6 +14,7 @@
   {
     "id": "vet-0002",
     "subject": "vetores",
+    "difficulty": "easy",
     "statement": "Com v: vetor[1..3] de inteiro, o que este algoritmo mostra?",
     "code": "v[1] <- 10\nv[2] <- 20\nv[3] <- 30\nescreva(v[2])",
     "correct": "20",
@@ -25,6 +27,7 @@
   {
     "id": "vet-0013",
     "subject": "vetores",
+    "difficulty": "normal",
     "statement": "Com v: vetor[1..4] de inteiro, o que este algoritmo mostra?",
     "code": "para i de 1 ate 4 faca\n  v[i] <- i * 10\nfimpara\nescreva(v[3])",
     "correct": "30",
@@ -37,6 +40,7 @@
   {
     "id": "vet-0014",
     "subject": "vetores",
+    "difficulty": "normal",
     "statement": "O vetor v[1..4] guarda 3, 8, 2, 5. O que este algoritmo mostra?",
     "code": "s <- 0\npara i de 1 ate 4 faca\n  s <- s + v[i]\nfimpara\nescreva(s)",
     "correct": "18",
@@ -44,6 +48,32 @@
     "wrong": [
       "4",
       "3825"
+    ]
+  },
+  {
+    "id": "vet-0025",
+    "subject": "vetores",
+    "difficulty": "hard",
+    "statement": "O vetor v[1..5] guarda 1, 2, 3, 4, 5. Depois do laço, o que é mostrado?",
+    "code": "para i de 1 ate 2 faca\n  aux <- v[i]\n  v[i] <- v[6 - i]\n  v[6 - i] <- aux\nfimpara\nescreva(v[1], v[2], v[3], v[4], v[5])",
+    "correct": "54321",
+    "proximal": "12345",
+    "wrong": [
+      "52341",
+      "54345"
+    ]
+  },
+  {
+    "id": "vet-0026",
+    "subject": "vetores",
+    "difficulty": "hard",
+    "statement": "Com m: vetor[1..2, 1..3] de inteiro, o que este algoritmo mostra?",
+    "code": "para i de 1 ate 2 faca\n  para j de 1 ate 3 faca\n    m[i, j] <- i * j\n  fimpara\nfimpara\nescreva(m[2, 3])",
+    "correct": "6",
+    "proximal": "5",
+    "wrong": [
+      "3",
+      "23"
     ]
   }
 ]

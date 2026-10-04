@@ -19,6 +19,9 @@ describe('banco da demonstração', () => {
       const qs = questionsBySubject[s]
       expect(qs.length).toBeGreaterThanOrEqual(3)
       for (const q of qs) expect(q.subject).toBe(s)
+      for (const level of ['easy', 'normal', 'hard']) {
+        expect(qs.some((q) => q.difficulty === level)).toBe(true)
+      }
     },
   )
 

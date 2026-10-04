@@ -94,6 +94,8 @@ export interface Player {
 export interface Question {
   id: string
   subject: Subject
+  /** Nível da pergunta (banco da demo); ausente = serve em qualquer nível. */
+  difficulty?: Difficulty
   statement: string
   /** Pseudocódigo opcional exibido abaixo do enunciado (`\n` = quebra). */
   code?: string

@@ -2,6 +2,7 @@
   {
     "id": "bus-0001",
     "subject": "busca-e-ordenacao",
+    "difficulty": "easy",
     "statement": "O que faz a busca linear (sequencial)?",
     "correct": "Compara o valor procurado com cada elemento, do primeiro ao último",
     "proximal": "Olha o meio da lista e descarta metade a cada passo",
@@ -13,6 +14,7 @@
   {
     "id": "bus-0002",
     "subject": "busca-e-ordenacao",
+    "difficulty": "easy",
     "statement": "Ordenar uma lista significa:",
     "correct": "Colocar os elementos em uma ordem definida, como a crescente",
     "proximal": "Remover os elementos repetidos",
@@ -24,6 +26,7 @@
   {
     "id": "bus-0013",
     "subject": "busca-e-ordenacao",
+    "difficulty": "normal",
     "statement": "O vetor v[1..4] guarda 3, 5, 8, 1. O que este algoritmo mostra?",
     "code": "achou <- FALSO\npara i de 1 ate 4 faca\n  se v[i] = 5 entao\n    achou <- VERDADEIRO\n  fimse\nfimpara\nescreva(achou)",
     "correct": "VERDADEIRO",
@@ -36,12 +39,37 @@
   {
     "id": "bus-0014",
     "subject": "busca-e-ordenacao",
+    "difficulty": "normal",
     "statement": "Na busca binária na lista 1, 3, 5, 7, 9, 11, 13, qual elemento é comparado PRIMEIRO?",
     "correct": "7",
     "proximal": "1",
     "wrong": [
       "13",
       "5"
+    ]
+  },
+  {
+    "id": "bus-0025",
+    "subject": "busca-e-ordenacao",
+    "difficulty": "hard",
+    "statement": "No pior caso, aproximadamente quantas comparações a busca binária faz em uma lista ordenada de 1000 elementos?",
+    "correct": "10",
+    "proximal": "500",
+    "wrong": [
+      "1000",
+      "100"
+    ]
+  },
+  {
+    "id": "bus-0026",
+    "subject": "busca-e-ordenacao",
+    "difficulty": "hard",
+    "statement": "Se uma lista ordenada DOBRA de tamanho, quantas comparações a mais a busca binária precisa no pior caso?",
+    "correct": "Apenas 1",
+    "proximal": "O dobro de comparações",
+    "wrong": [
+      "Nenhuma",
+      "1000 a mais"
     ]
   }
 ]

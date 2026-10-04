@@ -2,6 +2,7 @@
   {
     "id": "func-0001",
     "subject": "funcoes",
+    "difficulty": "easy",
     "statement": "Para que serve uma função em um algoritmo?",
     "correct": "Agrupar instruções sob um nome para reutilizá-las",
     "proximal": "Repetir um trecho até uma condição ficar falsa",
@@ -13,6 +14,7 @@
   {
     "id": "func-0002",
     "subject": "funcoes",
+    "difficulty": "easy",
     "statement": "O que este algoritmo mostra?",
     "code": "funcao dobro(x: inteiro): inteiro\n  retorne x * 2\nfimfuncao\nescreva(dobro(4))",
     "correct": "8",
@@ -25,6 +27,7 @@
   {
     "id": "func-0013",
     "subject": "funcoes",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "funcao dobro(x: inteiro): inteiro\n  retorne x * 2\nfimfuncao\nescreva(dobro(3) + dobro(4))",
     "correct": "14",
@@ -37,6 +40,7 @@
   {
     "id": "func-0014",
     "subject": "funcoes",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "funcao dobro(x: inteiro): inteiro\n  retorne x * 2\nfimfuncao\nescreva(dobro(dobro(3)))",
     "correct": "12",
@@ -44,6 +48,32 @@
     "wrong": [
       "9",
       "36"
+    ]
+  },
+  {
+    "id": "func-0025",
+    "subject": "funcoes",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "funcao fat(n: inteiro): inteiro\n  se n <= 1 entao\n    retorne 1\n  fimse\n  retorne n * fat(n - 1)\nfimfuncao\nescreva(fat(5))",
+    "correct": "120",
+    "proximal": "24",
+    "wrong": [
+      "15",
+      "5"
+    ]
+  },
+  {
+    "id": "func-0026",
+    "subject": "funcoes",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "funcao s(n: inteiro): inteiro\n  se n = 0 entao\n    retorne 0\n  fimse\n  retorne n + s(n - 1)\nfimfuncao\nescreva(s(4))",
+    "correct": "10",
+    "proximal": "6",
+    "wrong": [
+      "4",
+      "24"
     ]
   }
 ]

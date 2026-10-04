@@ -2,6 +2,7 @@
   {
     "id": "cond-0001",
     "subject": "condicionais",
+    "difficulty": "easy",
     "statement": "O que este algoritmo mostra?",
     "code": "x <- 8\nse x > 5 entao\n  escreva(\"grande\")\nfimse",
     "correct": "grande",
@@ -14,6 +15,7 @@
   {
     "id": "cond-0002",
     "subject": "condicionais",
+    "difficulty": "easy",
     "statement": "O que este algoritmo mostra?",
     "code": "x <- 3\nse x > 5 entao\n  escreva(\"grande\")\nfimse",
     "correct": "Nada é mostrado",
@@ -26,6 +28,7 @@
   {
     "id": "cond-0013",
     "subject": "condicionais",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "n <- 15\nse n < 10 entao\n  escreva(\"A\")\nsenao\n  se n < 20 entao\n    escreva(\"B\")\n  senao\n    escreva(\"C\")\n  fimse\nfimse",
     "correct": "B",
@@ -38,6 +41,7 @@
   {
     "id": "cond-0014",
     "subject": "condicionais",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "nota <- 6\nse nota >= 9 entao\n  escreva(\"Ótimo\")\nsenao\n  se nota >= 6 entao\n    escreva(\"Bom\")\n  senao\n    escreva(\"Ruim\")\n  fimse\nfimse",
     "correct": "Bom",
@@ -45,6 +49,32 @@
     "wrong": [
       "Ótimo",
       "Bom Ruim"
+    ]
+  },
+  {
+    "id": "cond-0025",
+    "subject": "condicionais",
+    "difficulty": "hard",
+    "statement": "O algoritmo testa se um ano é bissexto. O que ele mostra?",
+    "code": "a <- 1900\nse (a mod 4 = 0) E (a mod 100 <> 0) entao\n  escreva(\"bissexto\")\nsenao\n  se a mod 400 = 0 entao\n    escreva(\"bissexto\")\n  senao\n    escreva(\"comum\")\n  fimse\nfimse",
+    "correct": "comum",
+    "proximal": "bissexto",
+    "wrong": [
+      "1900",
+      "Nada é mostrado"
+    ]
+  },
+  {
+    "id": "cond-0026",
+    "subject": "condicionais",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "a <- 5\nb <- 5\nc <- 8\nse (a = b) E (b = c) entao\n  escreva(\"equilátero\")\nsenao\n  se (a = b) OU (b = c) OU (a = c) entao\n    escreva(\"isósceles\")\n  senao\n    escreva(\"escaleno\")\n  fimse\nfimse",
+    "correct": "isósceles",
+    "proximal": "escaleno",
+    "wrong": [
+      "equilátero",
+      "Nada é mostrado"
     ]
   }
 ]

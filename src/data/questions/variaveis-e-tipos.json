@@ -2,6 +2,7 @@
   {
     "id": "var-0001",
     "subject": "variaveis-e-tipos",
+    "difficulty": "easy",
     "statement": "Para que serve uma variável em um algoritmo?",
     "correct": "Guardar um valor na memória para usar depois",
     "proximal": "Mostrar um valor na tela",
@@ -13,6 +14,7 @@
   {
     "id": "var-0002",
     "subject": "variaveis-e-tipos",
+    "difficulty": "easy",
     "statement": "O que este algoritmo mostra?",
     "code": "x <- 7\nescreva(x)",
     "correct": "7",
@@ -25,6 +27,7 @@
   {
     "id": "var-0013",
     "subject": "variaveis-e-tipos",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "x <- 10\ny <- x\nx <- 20\nescreva(y)",
     "correct": "10",
@@ -37,12 +40,39 @@
   {
     "id": "var-0014",
     "subject": "variaveis-e-tipos",
+    "difficulty": "normal",
     "statement": "Qual é o resultado da expressão 2 + 3 * 4?",
     "correct": "14",
     "proximal": "20",
     "wrong": [
       "24",
       "9"
+    ]
+  },
+  {
+    "id": "var-0025",
+    "subject": "variaveis-e-tipos",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "a <- 3\nb <- 7\naux <- a\na <- b\nb <- aux\nescreva(a, \" \", b)",
+    "correct": "7 3",
+    "proximal": "7 7",
+    "wrong": [
+      "3 7",
+      "3 3"
+    ]
+  },
+  {
+    "id": "var-0026",
+    "subject": "variaveis-e-tipos",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "a <- 1\nb <- 2\nc <- 3\naux <- a\na <- b\nb <- c\nc <- aux\nescreva(a, b, c)",
+    "correct": "231",
+    "proximal": "312",
+    "wrong": [
+      "123",
+      "321"
     ]
   }
 ]

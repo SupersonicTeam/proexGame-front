@@ -2,6 +2,7 @@
   {
     "id": "alg-0001",
     "subject": "algoritmos",
+    "difficulty": "easy",
     "statement": "O que é um algoritmo?",
     "correct": "Uma sequência finita e ordenada de passos para resolver um problema",
     "proximal": "Um programa escrito em uma linguagem de programação",
@@ -13,6 +14,7 @@
   {
     "id": "alg-0002",
     "subject": "algoritmos",
+    "difficulty": "easy",
     "statement": "Qual é a ordem correta para trocar uma lâmpada queimada?",
     "correct": "Desligar o interruptor → tirar a queimada → colocar a nova → ligar",
     "proximal": "Tirar a queimada → desligar o interruptor → colocar a nova → ligar",
@@ -24,6 +26,7 @@
   {
     "id": "alg-0013",
     "subject": "algoritmos",
+    "difficulty": "normal",
     "statement": "O que este algoritmo mostra?",
     "code": "x <- 2\nx <- x + 3\nx <- x * 2\nx <- x - 1\nescreva(x)",
     "correct": "9",
@@ -36,12 +39,39 @@
   {
     "id": "alg-0014",
     "subject": "algoritmos",
+    "difficulty": "normal",
     "statement": "Qual ordem de instruções calcula e mostra a área de um retângulo corretamente?",
     "correct": "leia(b), leia(h), area <- b * h, escreva(area)",
     "proximal": "leia(b), area <- b * h, leia(h), escreva(area)",
     "wrong": [
       "escreva(area), leia(b), leia(h), area <- b * h",
       "area <- b * h, escreva(area), leia(b), leia(h)"
+    ]
+  },
+  {
+    "id": "alg-0025",
+    "subject": "algoritmos",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 1\npara i de 1 ate 4 faca\n  x <- x * 2\nfimpara\nescreva(x)",
+    "correct": "16",
+    "proximal": "8",
+    "wrong": [
+      "4",
+      "10"
+    ]
+  },
+  {
+    "id": "alg-0026",
+    "subject": "algoritmos",
+    "difficulty": "hard",
+    "statement": "Com a = 4, b = 9 e c = 7, qual é o valor final de maior?",
+    "code": "maior <- a\nse b > maior entao\n  maior <- b\nfimse\nse c > maior entao\n  maior <- c\nfimse",
+    "correct": "9",
+    "proximal": "7",
+    "wrong": [
+      "4",
+      "20"
     ]
   }
 ]

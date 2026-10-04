@@ -523,9 +523,13 @@ export class MockGameClient implements GameClient {
       this.advanceTurn()
       return
     }
+    // Como o backend (RF-NEW-04): só perguntas do nível da partida.
+    const difficulty = this.session.difficulty
     const q = selectQuestion(
       subject,
-      allQuestions,
+      allQuestions.filter(
+        (x) => x.difficulty === undefined || x.difficulty === difficulty,
+      ),
       this.usedQuestionIds,
       this.rng,
     )
