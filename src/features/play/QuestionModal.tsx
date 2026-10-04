@@ -36,7 +36,7 @@ type Phase = 'choosing' | 'suspense' | 'reveal'
  */
 function CodeBlock({ code }: { code: string }) {
   return (
-    <pre className="mt-3 max-w-full overflow-x-auto whitespace-pre rounded-xl bg-slate-900 px-4 py-3 font-mono text-sm leading-relaxed text-slate-100">
+    <pre className="mt-3 max-w-full overflow-x-auto whitespace-pre rounded-xl bg-slate-900 px-3 py-3 font-mono text-[13px] leading-relaxed sm:px-4 sm:text-sm text-slate-100">
       <code>{code}</code>
     </pre>
   )
@@ -100,7 +100,7 @@ export function QuestionModal({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         className={
-          'max-h-full w-full max-w-lg overflow-y-auto rounded-3xl border-4 bg-white p-7 shadow-2xl transition-colors duration-300 ' +
+          'max-h-full w-full max-w-lg overflow-y-auto rounded-3xl border-4 bg-white p-5 shadow-2xl sm:p-7 transition-colors duration-300 ' +
           frameClass
         }
         initial={{ scale: 0.9, opacity: 0, y: 10 }}
