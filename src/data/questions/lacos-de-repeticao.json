@@ -1,0 +1,79 @@
+[
+  {
+    "id": "laco-0001",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "easy",
+    "statement": "Para que serve um laço de repetição?",
+    "correct": "Executar um trecho várias vezes sem copiar o código",
+    "proximal": "Escolher entre dois caminhos possíveis",
+    "wrong": [
+      "Guardar um valor na memória",
+      "Encerrar o programa"
+    ]
+  },
+  {
+    "id": "laco-0002",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "easy",
+    "statement": "Quantas vezes \"oi\" aparece na tela?",
+    "code": "para i de 1 ate 3 faca\n  escreva(\"oi \")\nfimpara",
+    "correct": "3",
+    "proximal": "2",
+    "wrong": [
+      "1",
+      "4"
+    ]
+  },
+  {
+    "id": "laco-0013",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "normal",
+    "statement": "O que este algoritmo mostra?",
+    "code": "s <- 0\npara i de 1 ate 5 faca\n  s <- s + i\nfimpara\nescreva(s)",
+    "correct": "15",
+    "proximal": "10",
+    "wrong": [
+      "5",
+      "12345"
+    ]
+  },
+  {
+    "id": "laco-0014",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "normal",
+    "statement": "O que este algoritmo mostra?",
+    "code": "para i de 0 ate 10 passo 2 faca\n  escreva(i, \" \")\nfimpara",
+    "correct": "0 2 4 6 8 10",
+    "proximal": "0 2 4 6 8",
+    "wrong": [
+      "1 3 5 7 9",
+      "0 10"
+    ]
+  },
+  {
+    "id": "laco-0025",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "para i de 1 ate 3 faca\n  para j de 1 ate i faca\n    escreva(\"*\")\n  fimpara\n  escreva(\" \")\nfimpara",
+    "correct": "* ** ***",
+    "proximal": "*** *** ***",
+    "wrong": [
+      "***",
+      "* * *"
+    ]
+  },
+  {
+    "id": "laco-0026",
+    "subject": "lacos-de-repeticao",
+    "difficulty": "hard",
+    "statement": "O que este algoritmo mostra?",
+    "code": "s <- 0\npara i de 1 ate 3 faca\n  para j de 1 ate 3 faca\n    s <- s + i * j\n  fimpara\nfimpara\nescreva(s)",
+    "correct": "36",
+    "proximal": "9",
+    "wrong": [
+      "18",
+      "6"
+    ]
+  }
+]

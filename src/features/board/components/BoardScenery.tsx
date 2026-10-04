@@ -1,8 +1,8 @@
 /**
- * Cenário decorativo do tabuleiro (tema escolar), desenhado em SVG inline
+ * Cenário decorativo do tabuleiro (tema programação), desenhado em SVG inline
  * dentro do mesmo viewBox — escala junto e não depende de assets externos.
  * Renderizado ATRÁS da trilha e das casas. Inclui céu/sol/nuvens, colinas,
- * grama, props escolares espalhados (determinístico) e a moldura arredondada.
+ * grama, props de programação espalhados (determinístico) e a moldura arredondada.
  */
 import { useMemo } from 'react'
 import { scatterProps } from '../layout/scatter'
@@ -114,13 +114,13 @@ export function BoardScenery({
           opacity={0.9}
         />
 
-        {/* Props escolares espalhados */}
+        {/* Props de programação espalhados */}
         {props.map((p, i) => (
           <g
             key={i}
             transform={`translate(${p.x} ${p.y}) rotate(${p.rotation}) scale(${p.scale})`}
           >
-            <SchoolProp variant={p.variant} />
+            <CodeProp variant={p.variant} />
           </g>
         ))}
       </g>
@@ -167,52 +167,81 @@ function Cloud({ x, y, scale }: { x: number; y: number; scale: number }) {
   )
 }
 
-/** Ilustração de prop escolar, centrada em (0,0). */
-function SchoolProp({ variant }: { variant: number }) {
+/** Ilustração de prop de programação, centrada em (0,0). */
+function CodeProp({ variant }: { variant: number }) {
   switch (variant) {
     case 0:
-      return <PropBook />
+      return <PropBraces />
     case 1:
-      return <PropPencil />
+      return <PropTag />
     case 2:
-      return <PropStar />
+      return <PropChip />
     case 3:
       return <PropBalloon />
     case 4:
-      return <PropPlane />
+      return <PropTerminal />
     default:
-      return <PropRuler />
+      return <PropDecision />
   }
 }
 
-function PropBook() {
+/** Cartão com chaves `{ }` (bloco de código). */
+function PropBraces() {
   return (
     <g>
-      <rect x={-18} y={-13} width={36} height={26} rx={3} fill="#ef4444" />
-      <rect x={-18} y={-13} width={8} height={26} fill="#b91c1c" />
-      <rect x={-7} y={-9} width={22} height={3} rx={1.5} fill="#fecaca" />
-      <rect x={-7} y={-2} width={22} height={3} rx={1.5} fill="#fecaca" />
-      <rect x={-7} y={5} width={16} height={3} rx={1.5} fill="#fecaca" />
+      <rect x={-20} y={-14} width={40} height={28} rx={6} fill="#a78bfa" />
+      <text
+        x={0}
+        y={1}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={18}
+        fontWeight={800}
+        fontFamily="monospace"
+        fill="#ffffff"
+      >
+        {'{ }'}
+      </text>
     </g>
   )
 }
 
-function PropPencil() {
+/** Etiqueta `</>`. */
+function PropTag() {
   return (
-    <g transform="rotate(-35)">
-      <rect x={-4} y={-22} width={8} height={34} fill="#f59e0b" />
-      <rect x={-4} y={-22} width={8} height={6} fill="#fcd34d" />
-      <path d="M-4 12 L4 12 L0 22 Z" fill="#fbbf24" />
-      <path d="M-1.6 16 L1.6 16 L0 22 Z" fill="#1f2937" />
-      <rect x={-4} y={-26} width={8} height={5} rx={1.5} fill="#f472b6" />
+    <g>
+      <rect x={-22} y={-13} width={44} height={26} rx={13} fill="#f472b6" />
+      <text
+        x={0}
+        y={1}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={15}
+        fontWeight={800}
+        fontFamily="monospace"
+        fill="#ffffff"
+      >
+        {'</>'}
+      </text>
     </g>
   )
 }
 
-function PropStar() {
-  const pts = starPoints(5, 18, 8)
+/** Microchip com perninhas. */
+function PropChip() {
   return (
-    <polygon points={pts} fill="#facc15" stroke="#eab308" strokeWidth={1.5} />
+    <g>
+      {[-9, 0, 9].map((t) => (
+        <g key={t} stroke="#475569" strokeWidth={2.4} strokeLinecap="round">
+          <line x1={t} y1={-19} x2={t} y2={-13} />
+          <line x1={t} y1={13} x2={t} y2={19} />
+          <line x1={-19} y1={t} x2={-13} y2={t} />
+          <line x1={13} y1={t} x2={19} y2={t} />
+        </g>
+      ))}
+      <rect x={-14} y={-14} width={28} height={28} rx={4} fill="#334155" />
+      <rect x={-7} y={-7} width={14} height={14} rx={2} fill="#22d3ee" />
+    </g>
   )
 }
 
@@ -236,44 +265,52 @@ function PropBalloon() {
   )
 }
 
-function PropPlane() {
+/** Janelinha de terminal com prompt `>_`. */
+function PropTerminal() {
   return (
-    <g fill="#e2e8f0" stroke="#94a3b8" strokeWidth={1} strokeLinejoin="round">
-      <path d="M-22 0 L22 -8 L4 4 Z" />
-      <path d="M4 4 L22 -8 L8 12 Z" fill="#cbd5e1" />
+    <g>
+      <rect x={-22} y={-15} width={44} height={30} rx={4} fill="#1e293b" />
+      <rect x={-22} y={-15} width={44} height={7} rx={3} fill="#475569" />
+      <circle cx={-17} cy={-11.5} r={1.6} fill="#f87171" />
+      <circle cx={-12} cy={-11.5} r={1.6} fill="#fbbf24" />
+      <circle cx={-7} cy={-11.5} r={1.6} fill="#4ade80" />
+      <text
+        x={-15}
+        y={5}
+        dominantBaseline="central"
+        fontSize={12}
+        fontWeight={800}
+        fontFamily="monospace"
+        fill="#4ade80"
+      >
+        {'>_'}
+      </text>
     </g>
   )
 }
 
-function PropRuler() {
+/** Losango de decisão (fluxograma) com `?`. */
+function PropDecision() {
   return (
-    <g transform="rotate(20)">
-      <rect x={-24} y={-7} width={48} height={14} rx={2} fill="#a78bfa" />
-      {[-18, -12, -6, 0, 6, 12, 18].map((tx) => (
-        <line
-          key={tx}
-          x1={tx}
-          y1={-7}
-          x2={tx}
-          y2={tx % 12 === 0 ? 1 : -2}
-          stroke="#ffffff"
-          strokeWidth={1.4}
-        />
-      ))}
+    <g>
+      <path
+        d="M0 -20 L22 0 L0 20 L-22 0 Z"
+        fill="#fbbf24"
+        stroke="#d97706"
+        strokeWidth={1.5}
+      />
+      <text
+        x={0}
+        y={1}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={14}
+        fontWeight={800}
+        fontFamily="monospace"
+        fill="#78350f"
+      >
+        {'se?'}
+      </text>
     </g>
   )
-}
-
-/** Gera os pontos de uma estrela de `spikes` pontas. */
-function starPoints(spikes: number, outer: number, inner: number): string {
-  const pts: string[] = []
-  const step = Math.PI / spikes
-  for (let i = 0; i < spikes * 2; i++) {
-    const radius = i % 2 === 0 ? outer : inner
-    const angle = i * step - Math.PI / 2
-    pts.push(
-      `${(Math.cos(angle) * radius).toFixed(2)},${(Math.sin(angle) * radius).toFixed(2)}`,
-    )
-  }
-  return pts.join(' ')
 }

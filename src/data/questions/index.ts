@@ -1,6 +1,7 @@
 /**
- * Banco de perguntas em memória. Importa os 10 arquivos JSON (um por matéria)
- * e expõe coleções prontas para consumo pelo jogo.
+ * Banco de perguntas do modo demonstração, em memória. Importa os 8 arquivos
+ * JSON (um por categoria de lógica de programação — subconjunto do banco do
+ * backend) e expõe coleções prontas para consumo pelo jogo.
  *
  * Os JSON inferem `subject` como `string` e `wrong` como `string[]`, então cada
  * import é convertido para `Question[]` via `as unknown as`. O conteúdo dos JSON
@@ -9,28 +10,24 @@
 
 import type { Question, Subject } from '../../game/types'
 
-import matematica from './matematica.json'
-import portugues from './portugues.json'
-import historia from './historia.json'
-import geografia from './geografia.json'
-import ciencias from './ciencias.json'
-import biologia from './biologia.json'
-import fisica from './fisica.json'
-import quimica from './quimica.json'
-import ingles from './ingles.json'
-import artes from './artes.json'
+import algoritmos from './algoritmos.json'
+import variaveisETipos from './variaveis-e-tipos.json'
+import condicionais from './condicionais.json'
+import operadoresLogicos from './operadores-logicos.json'
+import lacosDeRepeticao from './lacos-de-repeticao.json'
+import vetores from './vetores.json'
+import funcoes from './funcoes.json'
+import buscaEOrdenacao from './busca-e-ordenacao.json'
 
 export const questionsBySubject: Record<Subject, Question[]> = {
-  matematica: matematica as unknown as Question[],
-  portugues: portugues as unknown as Question[],
-  historia: historia as unknown as Question[],
-  geografia: geografia as unknown as Question[],
-  ciencias: ciencias as unknown as Question[],
-  biologia: biologia as unknown as Question[],
-  fisica: fisica as unknown as Question[],
-  quimica: quimica as unknown as Question[],
-  ingles: ingles as unknown as Question[],
-  artes: artes as unknown as Question[],
+  algoritmos: algoritmos as unknown as Question[],
+  'variaveis-e-tipos': variaveisETipos as unknown as Question[],
+  condicionais: condicionais as unknown as Question[],
+  'operadores-logicos': operadoresLogicos as unknown as Question[],
+  'lacos-de-repeticao': lacosDeRepeticao as unknown as Question[],
+  vetores: vetores as unknown as Question[],
+  funcoes: funcoes as unknown as Question[],
+  'busca-e-ordenacao': buscaEOrdenacao as unknown as Question[],
 }
 
 export const allQuestions: Question[] = Object.values(questionsBySubject).flat()

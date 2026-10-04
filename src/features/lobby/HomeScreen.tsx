@@ -45,7 +45,7 @@ export function HomeScreen() {
             Trilha do Saber
           </h1>
           <p className="mt-2 text-lg text-white/90">
-            Jogo de tabuleiro educativo — responda e avance!
+            Treine lógica de programação — pense, resolva e avance!
           </p>
         </header>
 

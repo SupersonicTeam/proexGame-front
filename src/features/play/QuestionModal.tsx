@@ -29,6 +29,19 @@ const REVEAL_HOLD_MS = 3000
 
 type Phase = 'choosing' | 'suspense' | 'reveal'
 
+/**
+ * Pseudocódigo da pergunta (Portugol). Monoespaçado e `whitespace-pre` para
+ * preservar a indentação; linhas longas rolam dentro do bloco, sem estourar o
+ * modal no celular.
+ */
+function CodeBlock({ code }: { code: string }) {
+  return (
+    <pre className="mt-3 max-w-full overflow-x-auto whitespace-pre rounded-xl bg-slate-900 px-3 py-3 font-mono text-[13px] leading-relaxed sm:px-4 sm:text-sm text-slate-100">
+      <code>{code}</code>
+    </pre>
+  )
+}
+
 export function QuestionModal({
   question,
   lastAnswer,
@@ -87,7 +100,7 @@ export function QuestionModal({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         className={
-          'w-full max-w-lg rounded-3xl border-4 bg-white p-7 shadow-2xl transition-colors duration-300 ' +
+          'max-h-full w-full max-w-lg overflow-y-auto rounded-3xl border-4 bg-white p-5 shadow-2xl sm:p-7 transition-colors duration-300 ' +
           frameClass
         }
         initial={{ scale: 0.9, opacity: 0, y: 10 }}
@@ -104,6 +117,8 @@ export function QuestionModal({
         <h2 className="mt-4 text-xl font-black leading-snug text-slate-800">
           {question.statement}
         </h2>
+
+        {question.code !== undefined && <CodeBlock code={question.code} />}
 
         <div className="mt-5 grid gap-2.5">
           {question.options.map((opt, i) => (

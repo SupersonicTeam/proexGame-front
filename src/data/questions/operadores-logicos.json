@@ -1,0 +1,75 @@
+[
+  {
+    "id": "oplog-0001",
+    "subject": "operadores-logicos",
+    "difficulty": "easy",
+    "statement": "Qual é o resultado de VERDADEIRO E FALSO?",
+    "correct": "FALSO",
+    "proximal": "VERDADEIRO",
+    "wrong": [
+      "Depende do computador",
+      "Dá erro"
+    ]
+  },
+  {
+    "id": "oplog-0002",
+    "subject": "operadores-logicos",
+    "difficulty": "easy",
+    "statement": "Qual é o resultado de VERDADEIRO OU FALSO?",
+    "correct": "VERDADEIRO",
+    "proximal": "FALSO",
+    "wrong": [
+      "Depende do computador",
+      "Dá erro"
+    ]
+  },
+  {
+    "id": "oplog-0013",
+    "subject": "operadores-logicos",
+    "difficulty": "normal",
+    "statement": "O que este algoritmo mostra?",
+    "code": "a <- 3\nb <- 8\nescreva((a > 5) OU (b > 5))",
+    "correct": "VERDADEIRO",
+    "proximal": "FALSO",
+    "wrong": [
+      "8",
+      "3"
+    ]
+  },
+  {
+    "id": "oplog-0014",
+    "subject": "operadores-logicos",
+    "difficulty": "normal",
+    "statement": "Qual é a negação de x > 5?",
+    "correct": "x <= 5",
+    "proximal": "x < 5",
+    "wrong": [
+      "x >= 5",
+      "x > -5"
+    ]
+  },
+  {
+    "id": "oplog-0025",
+    "subject": "operadores-logicos",
+    "difficulty": "hard",
+    "statement": "A expressão NAO (A OU B) é equivalente a:",
+    "correct": "(NAO A) E (NAO B)",
+    "proximal": "(NAO A) OU (NAO B)",
+    "wrong": [
+      "A E B",
+      "(NAO A) OU B"
+    ]
+  },
+  {
+    "id": "oplog-0026",
+    "subject": "operadores-logicos",
+    "difficulty": "hard",
+    "statement": "Qual é a negação de (idade >= 18) E temIngresso?",
+    "correct": "(idade < 18) OU (NAO temIngresso)",
+    "proximal": "(idade < 18) E (NAO temIngresso)",
+    "wrong": [
+      "(idade <= 18) OU temIngresso",
+      "(idade >= 18) OU (NAO temIngresso)"
+    ]
+  }
+]
