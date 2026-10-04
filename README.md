@@ -1,6 +1,8 @@
 # Trilha do Saber — Frontend
 
-Jogo de tabuleiro educativo multiplayer (até 4 jogadores, mobile + desktop).
+Jogo de tabuleiro educativo multiplayer (até 4 jogadores, mobile + desktop) que
+treina **lógica de programação** para iniciantes (14+): pensar no passo a passo e
+escolher o algoritmo antes de qualquer linguagem.
 Este repositório contém **apenas o frontend**. O backend (NestJS + Socket.IO +
 Redis) é desenvolvido à parte e segue o contrato de eventos definido em
 `src/game/types.ts` (§7 da SPEC).
@@ -17,6 +19,15 @@ Funcionalidades da Sprint 1: criar/entrar em sessão, lobby com código, rolagem
 de ordem, turnos alternados, dado d6, movimento no tabuleiro serpentino
 (20–30 casas, responsivo), vitória por chegar/ultrapassar a chegada e ranking
 final. Sem perguntas e sem casas de presídio (Sprints 2/3).
+
+## Conteúdo
+
+As casas-pergunta trazem 8 categorias por conceito — Algoritmos, Variáveis e
+Tipos, Condicionais, Operadores Lógicos, Laços de Repetição, Vetores, Funções e
+Busca e Ordenação — com pseudocódigo em Portugol. O banco oficial (288
+perguntas, 3 níveis) fica no backend; o modo demonstração usa um subconjunto em
+`src/data/questions/`. Quando a pergunta traz `code`, o modal o exibe em bloco
+monoespaçado.
 
 ## Como rodar
 
