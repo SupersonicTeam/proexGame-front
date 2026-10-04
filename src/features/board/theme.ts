@@ -19,8 +19,8 @@ export function tileColor(type: TileType): string {
 
 /**
  * Metadados de exibição de uma matéria. `subject` é um SLUG ABERTO vindo do
- * backend (CONTRACT pós-S5 #4): este mapa cobre as 8 matérias atuais + o banco
- * legado do modo demonstração; qualquer slug desconhecido cai num FALLBACK
+ * backend (CONTRACT pós-S5 #4): este mapa cobre as 8 categorias de lógica de
+ * programação (backend e demo); qualquer slug desconhecido cai num FALLBACK
  * determinístico (cor por hash + rótulo derivado do slug). Nunca quebrar a UI
  * por causa de uma matéria nova no backend.
  */
@@ -36,22 +36,15 @@ interface SubjectMeta {
 }
 
 const SUBJECT_META: Record<string, SubjectMeta> = {
-  // --- 8 matérias do backend (CONTRACT pós-S5 #4) ---
-  'conhecimentos-gerais': { name: 'Conhecimentos Gerais', label: 'Geral', color: '#0ea5e9', icon: '🌍' },
-  'desenvolvimento-web': { name: 'Desenvolvimento Web', label: 'Web', color: '#2563eb', icon: '💻' },
-  fisica: { name: 'Física', label: 'Fís', color: '#7c3aed', icon: '🔭' },
-  logica: { name: 'Lógica', label: 'Lóg', color: '#9333ea', icon: '🧩' },
-  matematica: { name: 'Matemática', label: 'Mat', color: '#6d28d9', icon: '➗' },
-  'matematica-financeira': { name: 'Matemática Financeira', label: 'Mat. Fin.', color: '#0d9488', icon: '💰' },
-  portugues: { name: 'Português', label: 'Port', color: '#fb7185', icon: '📖' },
-  quimica: { name: 'Química', label: 'Quí', color: '#db2777', icon: '⚗️' },
-  // --- banco legado do modo demonstração (MockGameClient) ---
-  historia: { name: 'História', label: 'Hist', color: '#b45309', icon: '🏛️' },
-  geografia: { name: 'Geografia', label: 'Geo', color: '#059669', icon: '🗺️' },
-  ciencias: { name: 'Ciências', label: 'Cien', color: '#0ea5e9', icon: '🔬' },
-  biologia: { name: 'Biologia', label: 'Bio', color: '#16a34a', icon: '🧬' },
-  ingles: { name: 'Inglês', label: 'Ing', color: '#2563eb', icon: '🔤' },
-  artes: { name: 'Artes', label: 'Art', color: '#f59e0b', icon: '🎨' },
+  // --- 8 categorias de lógica de programação (backend e modo demonstração) ---
+  algoritmos: { name: 'Algoritmos', label: 'Algo', color: '#0ea5e9', icon: '🧭' },
+  'variaveis-e-tipos': { name: 'Variáveis e Tipos', label: 'Var', color: '#d97706', icon: '📦' },
+  condicionais: { name: 'Condicionais', label: 'Se', color: '#db2777', icon: '🔀' },
+  'operadores-logicos': { name: 'Operadores Lógicos', label: 'E/OU', color: '#9333ea', icon: '🧩' },
+  'lacos-de-repeticao': { name: 'Laços de Repetição', label: 'Laço', color: '#16a34a', icon: '🔁' },
+  vetores: { name: 'Vetores', label: 'Vetor', color: '#2563eb', icon: '🗃️' },
+  funcoes: { name: 'Funções', label: 'Func', color: '#0d9488', icon: '🧱' },
+  'busca-e-ordenacao': { name: 'Busca e Ordenação', label: 'Busca', color: '#ea580c', icon: '🔍' },
 }
 
 /** Paleta determinística para o fallback de matérias desconhecidas. */
