@@ -27,22 +27,22 @@ export interface OrderingState {
  * quebrar (CONTRACT pós-S5 #4). O front mapeia cada slug para rótulo/ícone/cor
  * com FALLBACK genérico (ver `features/board/theme.ts`).
  *
- * Matérias atuais do backend (8): `conhecimentos-gerais`, `desenvolvimento-web`,
- * `fisica`, `logica`, `matematica`, `matematica-financeira`, `portugues`,
- * `quimica`. O modo demonstração (MockGameClient) usa um banco legado próprio.
+ * Categorias atuais do backend (8, lógica de programação): `algoritmos`,
+ * `variaveis-e-tipos`, `condicionais`, `operadores-logicos`,
+ * `lacos-de-repeticao`, `vetores`, `funcoes`, `busca-e-ordenacao`.
  */
 export type Subject = string
 
-/** As 8 matérias estáveis do backend (CONTRACT pós-S5 #4). */
+/** As 8 categorias de lógica de programação servidas pelo backend. */
 export const BACKEND_SUBJECTS = [
-  'conhecimentos-gerais',
-  'desenvolvimento-web',
-  'fisica',
-  'logica',
-  'matematica',
-  'matematica-financeira',
-  'portugues',
-  'quimica',
+  'algoritmos',
+  'variaveis-e-tipos',
+  'condicionais',
+  'operadores-logicos',
+  'lacos-de-repeticao',
+  'vetores',
+  'funcoes',
+  'busca-e-ordenacao',
 ] as const
 
 /** Tipo de casa. `prison` e `question` chegam nas Sprints 2/3. */
@@ -95,6 +95,8 @@ export interface Question {
   id: string
   subject: Subject
   statement: string
+  /** Pseudocódigo opcional exibido abaixo do enunciado (`\n` = quebra). */
+  code?: string
   correct: string
   proximal: string
   wrong: [string, string]
@@ -210,6 +212,8 @@ export interface QuestionPromptEvent {
   questionId: string
   subject: Subject
   statement: string
+  /** Pseudocódigo público da pergunta; ausente quando ela não tem. */
+  code?: string
   /** Alternativas já embaralhadas; a correta nunca é identificada (RF-16). */
   options: string[]
 }

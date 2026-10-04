@@ -95,6 +95,8 @@ interface RawQuestionPrompt {
   /** S3+: o backend agora envia a matéria; mantemos opcional por robustez. */
   subject?: Subject
   statement: string
+  /** Pseudocódigo (feature logica-programacao); só vem quando a pergunta tem. */
+  code?: string
   options: string[]
 }
 interface RawAnswerResult {
@@ -352,6 +354,7 @@ export class SocketGameClient implements GameClient {
         // S3+: usa a matéria do backend; deriva da casa só como fallback.
         subject: raw.subject ?? this.subjectForLocalPlayer(),
         statement: raw.statement,
+        ...(raw.code !== undefined && { code: raw.code }),
         options: raw.options,
       })
     })
