@@ -1,3 +1,4 @@
+import { BACKEND_SUBJECTS } from '../types'
 import type { BoardDescriptor, Difficulty, Subject, TileType } from '../types'
 
 /** Limites do tamanho do tabuleiro. */
@@ -11,19 +12,8 @@ const QUESTION_DENSITY: Record<Difficulty, number> = {
   hard: 0.8,
 }
 
-/** As 10 matérias escolares (RF-09). */
-const SUBJECTS: readonly Subject[] = [
-  'matematica',
-  'portugues',
-  'historia',
-  'geografia',
-  'ciencias',
-  'biologia',
-  'fisica',
-  'quimica',
-  'ingles',
-  'artes',
-]
+/** As 8 categorias de lógica de programação (mesmas do backend e do banco da demo). */
+const SUBJECTS: readonly Subject[] = BACKEND_SUBJECTS
 
 /** Sorteia e remove um elemento de `pool`, devolvendo-o (mutação local). */
 function takeRandom<T>(pool: T[], rng: () => number): T {

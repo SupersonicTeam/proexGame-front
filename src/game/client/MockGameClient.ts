@@ -549,6 +549,7 @@ export class MockGameClient implements GameClient {
         questionId: q.id,
         subject,
         statement: q.statement,
+        ...(q.code !== undefined && { code: q.code }),
         options,
       })
     } else {

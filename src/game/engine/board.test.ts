@@ -9,17 +9,16 @@ const DENSITY: Record<Difficulty, number> = {
   hard: 0.8,
 }
 
+/** As 8 categorias de lógica de programação (feature logica-programacao). */
 const SUBJECTS: readonly Subject[] = [
-  'matematica',
-  'portugues',
-  'historia',
-  'geografia',
-  'ciencias',
-  'biologia',
-  'fisica',
-  'quimica',
-  'ingles',
-  'artes',
+  'algoritmos',
+  'variaveis-e-tipos',
+  'condicionais',
+  'operadores-logicos',
+  'lacos-de-repeticao',
+  'vetores',
+  'funcoes',
+  'busca-e-ordenacao',
 ]
 
 /** Gerador linear-congruente determinístico, retorna valores em [0, 1). */

@@ -1,0 +1,48 @@
+[
+  {
+    "id": "var-0001",
+    "subject": "variaveis-e-tipos",
+    "statement": "Para que serve uma variável em um algoritmo?",
+    "correct": "Guardar um valor na memória para usar depois",
+    "proximal": "Mostrar um valor na tela",
+    "wrong": [
+      "Desligar o programa",
+      "Repetir um trecho de código"
+    ]
+  },
+  {
+    "id": "var-0002",
+    "subject": "variaveis-e-tipos",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 7\nescreva(x)",
+    "correct": "7",
+    "proximal": "x",
+    "wrong": [
+      "0",
+      "x <- 7"
+    ]
+  },
+  {
+    "id": "var-0013",
+    "subject": "variaveis-e-tipos",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 10\ny <- x\nx <- 20\nescreva(y)",
+    "correct": "10",
+    "proximal": "20",
+    "wrong": [
+      "30",
+      "x"
+    ]
+  },
+  {
+    "id": "var-0014",
+    "subject": "variaveis-e-tipos",
+    "statement": "Qual é o resultado da expressão 2 + 3 * 4?",
+    "correct": "14",
+    "proximal": "20",
+    "wrong": [
+      "24",
+      "9"
+    ]
+  }
+]

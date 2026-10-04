@@ -1,0 +1,49 @@
+[
+  {
+    "id": "vet-0001",
+    "subject": "vetores",
+    "statement": "Para que serve um vetor?",
+    "correct": "Guardar vários valores do mesmo tipo sob um único nome, acessados por índice",
+    "proximal": "Guardar um único valor que pode mudar de tipo",
+    "wrong": [
+      "Repetir um trecho de código",
+      "Desenhar setas na tela"
+    ]
+  },
+  {
+    "id": "vet-0002",
+    "subject": "vetores",
+    "statement": "Com v: vetor[1..3] de inteiro, o que este algoritmo mostra?",
+    "code": "v[1] <- 10\nv[2] <- 20\nv[3] <- 30\nescreva(v[2])",
+    "correct": "20",
+    "proximal": "10",
+    "wrong": [
+      "30",
+      "2"
+    ]
+  },
+  {
+    "id": "vet-0013",
+    "subject": "vetores",
+    "statement": "Com v: vetor[1..4] de inteiro, o que este algoritmo mostra?",
+    "code": "para i de 1 ate 4 faca\n  v[i] <- i * 10\nfimpara\nescreva(v[3])",
+    "correct": "30",
+    "proximal": "40",
+    "wrong": [
+      "3",
+      "100"
+    ]
+  },
+  {
+    "id": "vet-0014",
+    "subject": "vetores",
+    "statement": "O vetor v[1..4] guarda 3, 8, 2, 5. O que este algoritmo mostra?",
+    "code": "s <- 0\npara i de 1 ate 4 faca\n  s <- s + v[i]\nfimpara\nescreva(s)",
+    "correct": "18",
+    "proximal": "10",
+    "wrong": [
+      "4",
+      "3825"
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cond-0001",
+    "subject": "condicionais",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 8\nse x > 5 entao\n  escreva(\"grande\")\nfimse",
+    "correct": "grande",
+    "proximal": "Nada é mostrado",
+    "wrong": [
+      "8",
+      "x > 5"
+    ]
+  },
+  {
+    "id": "cond-0002",
+    "subject": "condicionais",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 3\nse x > 5 entao\n  escreva(\"grande\")\nfimse",
+    "correct": "Nada é mostrado",
+    "proximal": "grande",
+    "wrong": [
+      "3",
+      "pequeno"
+    ]
+  },
+  {
+    "id": "cond-0013",
+    "subject": "condicionais",
+    "statement": "O que este algoritmo mostra?",
+    "code": "n <- 15\nse n < 10 entao\n  escreva(\"A\")\nsenao\n  se n < 20 entao\n    escreva(\"B\")\n  senao\n    escreva(\"C\")\n  fimse\nfimse",
+    "correct": "B",
+    "proximal": "C",
+    "wrong": [
+      "A",
+      "AB"
+    ]
+  },
+  {
+    "id": "cond-0014",
+    "subject": "condicionais",
+    "statement": "O que este algoritmo mostra?",
+    "code": "nota <- 6\nse nota >= 9 entao\n  escreva(\"Ótimo\")\nsenao\n  se nota >= 6 entao\n    escreva(\"Bom\")\n  senao\n    escreva(\"Ruim\")\n  fimse\nfimse",
+    "correct": "Bom",
+    "proximal": "Ruim",
+    "wrong": [
+      "Ótimo",
+      "Bom Ruim"
+    ]
+  }
+]

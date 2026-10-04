@@ -1,0 +1,47 @@
+[
+  {
+    "id": "alg-0001",
+    "subject": "algoritmos",
+    "statement": "O que é um algoritmo?",
+    "correct": "Uma sequência finita e ordenada de passos para resolver um problema",
+    "proximal": "Um programa escrito em uma linguagem de programação",
+    "wrong": [
+      "Um tipo de computador",
+      "Um erro que aparece no programa"
+    ]
+  },
+  {
+    "id": "alg-0002",
+    "subject": "algoritmos",
+    "statement": "Qual é a ordem correta para trocar uma lâmpada queimada?",
+    "correct": "Desligar o interruptor → tirar a queimada → colocar a nova → ligar",
+    "proximal": "Tirar a queimada → desligar o interruptor → colocar a nova → ligar",
+    "wrong": [
+      "Ligar o interruptor → colocar a nova → tirar a queimada → desligar",
+      "Colocar a nova → ligar → tirar a queimada → desligar"
+    ]
+  },
+  {
+    "id": "alg-0013",
+    "subject": "algoritmos",
+    "statement": "O que este algoritmo mostra?",
+    "code": "x <- 2\nx <- x + 3\nx <- x * 2\nx <- x - 1\nescreva(x)",
+    "correct": "9",
+    "proximal": "10",
+    "wrong": [
+      "7",
+      "11"
+    ]
+  },
+  {
+    "id": "alg-0014",
+    "subject": "algoritmos",
+    "statement": "Qual ordem de instruções calcula e mostra a área de um retângulo corretamente?",
+    "correct": "leia(b), leia(h), area <- b * h, escreva(area)",
+    "proximal": "leia(b), area <- b * h, leia(h), escreva(area)",
+    "wrong": [
+      "escreva(area), leia(b), leia(h), area <- b * h",
+      "area <- b * h, escreva(area), leia(b), leia(h)"
+    ]
+  }
+]
