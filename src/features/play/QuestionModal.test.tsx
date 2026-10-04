@@ -43,10 +43,14 @@ describe('QuestionModal — pseudocódigo', () => {
   it('o bloco é monoespaçado, preserva espaços e rola na horizontal', () => {
     const { container } = renderModal({ ...BASE, code: CODE })
     const pre = container.querySelector('pre')!
-    expect(pre.className).toContain('font-mono')
-    expect(pre.className).toContain('whitespace-pre')
-    expect(pre.className).toContain('overflow-x-auto')
-    expect(pre.className).toContain('max-w-full')
+    // Checagem por token: `whitespace-pre-wrap` quebraria as linhas do código
+    // e passaria num `toContain('whitespace-pre')` de substring.
+    expect(pre.classList.contains('font-mono')).toBe(true)
+    expect(pre.classList.contains('whitespace-pre')).toBe(true)
+    expect(pre.classList.contains('whitespace-pre-wrap')).toBe(false)
+    expect(pre.classList.contains('whitespace-pre-line')).toBe(false)
+    expect(pre.classList.contains('overflow-x-auto')).toBe(true)
+    expect(pre.classList.contains('max-w-full')).toBe(true)
   })
 
   it('o bloco fica entre o enunciado e as alternativas', () => {
