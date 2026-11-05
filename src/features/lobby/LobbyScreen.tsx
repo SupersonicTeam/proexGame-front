@@ -130,7 +130,9 @@ export function LobbyScreen() {
           {isHost ? (
             <Button
               size="lg"
-              className="w-full"
+              // Desabilitado ("Aguardando jogadores…") mantém a mesma cor sólida
+              // do "Iniciar partida", sem o esmaecido padrão do Button.
+              className="w-full disabled:opacity-100"
               disabled={!canStart}
               onClick={() => startGame()}
             >
