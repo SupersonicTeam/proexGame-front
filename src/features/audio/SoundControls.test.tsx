@@ -2,7 +2,7 @@
  * Controle de som = um único botão que liga/desliga o som (sem painel nem
  * ajuste de volume).
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SoundControls } from './SoundControls'
 import { useAudioStore } from './useAudioStore'
@@ -44,5 +44,28 @@ describe('SoundControls — botão de mudo', () => {
     expect(JSON.parse(localStorage.getItem('tds-audio') ?? '{}')).toEqual({
       muted: true,
     })
+  })
+})
+
+describe('useAudioStore — som desligado por padrão', () => {
+  it('primeira visita (sem preferência salva) começa no mudo', async () => {
+    localStorage.clear()
+    vi.resetModules()
+    const { useAudioStore: fresh } = await import('./useAudioStore')
+    expect(fresh.getState().muted).toBe(true)
+  })
+
+  it('respeita quem já ligou o som antes', async () => {
+    localStorage.setItem('tds-audio', JSON.stringify({ muted: false }))
+    vi.resetModules()
+    const { useAudioStore: fresh } = await import('./useAudioStore')
+    expect(fresh.getState().muted).toBe(false)
+  })
+
+  it('preferência ilegível volta ao padrão mudo', async () => {
+    localStorage.setItem('tds-audio', '{quebrado')
+    vi.resetModules()
+    const { useAudioStore: fresh } = await import('./useAudioStore')
+    expect(fresh.getState().muted).toBe(true)
   })
 })

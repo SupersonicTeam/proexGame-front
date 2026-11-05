@@ -1,21 +1,25 @@
 /**
  * Estado de áudio (mudo) com persistência em localStorage. Espelha as mudanças
  * no motor (`audio`) imperativo. A UI (`SoundControls`) consome este store; o
- * motor só toca som depois do primeiro gesto (ver `unlock`). O volume é fixo
- * (definido no motor): o jogador só liga/desliga o som.
+ * motor só toca som depois do primeiro gesto (ver `unlock`). Começa no mudo na
+ * primeira visita; o volume é fixo (definido no motor): o jogador só
+ * liga/desliga o som.
  */
 import { create } from 'zustand'
 import { audio } from './audioEngine'
 
 const STORAGE_KEY = 'tds-audio'
 
+/** Sem preferência salva (1ª visita) ou ilegível, o jogo começa SEM som. */
+const DEFAULT_MUTED = true
+
 function loadMuted(): boolean {
-  if (typeof window === 'undefined') return false
+  if (typeof window === 'undefined') return DEFAULT_MUTED
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-    return Boolean(raw.muted)
+    return typeof raw.muted === 'boolean' ? raw.muted : DEFAULT_MUTED
   } catch {
-    return false
+    return DEFAULT_MUTED
   }
 }
 
