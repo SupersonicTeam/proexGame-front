@@ -31,7 +31,8 @@ class AudioEngine {
   private ambientGain: GainNode | null = null
   private ambientTimer: ReturnType<typeof setInterval> | null = null
   private chordIndex = 0
-  private volume = 0.5
+  /** Volume fixo do jogo (não há ajuste na UI, só ligar/desligar). */
+  private readonly volume = 0.5
   private muted = false
   private ambientOn = false
 
@@ -49,11 +50,6 @@ class AudioEngine {
     }
     if (this.ctx.state === 'suspended') void this.ctx.resume()
     return true
-  }
-
-  setVolume(v: number): void {
-    this.volume = Math.max(0, Math.min(1, v))
-    if (this.master && !this.muted) this.master.gain.value = this.volume
   }
 
   setMuted(m: boolean): void {
